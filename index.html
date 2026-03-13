@@ -31,7 +31,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- İkon Bileşenleri ---
+        // --- Icon Components ---
         const Icon = ({ d, size = 20, className = "" }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 <path d={d} />
@@ -51,10 +51,16 @@
             X: (p) => <Icon {...p} d="M18 6L6 18M6 6l12 12" />,
             Phone: (p) => <Icon {...p} d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />,
             Instagram: (p) => <Icon {...p} d="M17 2H7a5 5 0 0 0-5 5v10a5 5 0 0 0 5 5h10a5 5 0 0 0 5-5V7a5 5 0 0 0-5-5z M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z M17.5 6.5h.01" />,
-            Users: (p) => <Icon {...p} d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75" />
+            MessageSquare: (p) => <Icon {...p} d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         };
 
-        // --- Firebase Configuration ---
+        const CosgenLogo = () => (
+            <div className="font-black text-2xl tracking-tighter text-slate-900">
+                cos<span className="text-slate-400">gen</span>
+            </div>
+        );
+
+        // --- Firebase Config ---
         const firebaseConfig = {
             apiKey: "AIzaSyCzRjEc2aud5MFccPmgzjpeHezrhTfz1Pk",
             authDomain: "cosgenv2.firebaseapp.com",
@@ -79,28 +85,25 @@
 
             const [appointments, setAppointments] = useState([]);
             const [leads, setLeads] = useState([]);
-            const [activeTab, setActiveTab] = useState('saha'); // 'saha' or 'sosyal'
+            const [activeTab, setActiveTab] = useState('saha'); 
             const [loading, setLoading] = useState(true);
             const [isAdmin, setIsAdmin] = useState(false);
             const [showForm, setShowForm] = useState(false);
             const [showLeadForm, setShowLeadForm] = useState(false);
             const [showPassModal, setShowPassModal] = useState(false);
+            const [showOutcomeModal, setShowOutcomeModal] = useState(null); 
             const [passInput, setPassInput] = useState('');
             const [filterCity, setFilterCity] = useState('Hepsi');
             const [searchQuery, setSearchQuery] = useState('');
             const [notification, setNotification] = useState(null);
             const [deletingRecord, setDeletingRecord] = useState(null);
 
-            // Saha Kayıt Form State
             const [newApp, setNewApp] = useState({ centerName: '', city: 'İstanbul', district: 'Beşiktaş', date: '', time: '', salesRep: salesReps[0] });
-            
-            // Sosyal Medya Lead Form State
             const [newLead, setNewLead] = useState({ salonName: '', phone: '', city: 'İstanbul', salesRep: salesReps[0] });
 
             useEffect(() => {
                 auth.signInAnonymously().catch(err => console.error("Giriş hatası:", err));
 
-                // Sahaları Dinle
                 const unsubSaha = db.collection('appointments').onSnapshot(snapshot => {
                     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'saha' }));
                     data.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
@@ -108,9 +111,9 @@
                     setLoading(false);
                 });
 
-                // Talepleri Dinle
                 const unsubLeads = db.collection('leads').onSnapshot(snapshot => {
                     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'lead' }));
+                    data.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
                     setLeads(data);
                 });
 
@@ -138,7 +141,7 @@
             const addLead = async (e) => {
                 e.preventDefault();
                 try {
-                    await db.collection('leads').add({ ...newLead, status: 'Aranacak', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    await db.collection('leads').add({ ...newLead, status: 'Aranacak', note: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     setShowLeadForm(false);
                     setNewLead({ salonName: '', phone: '', city: 'İstanbul', salesRep: salesReps[0] });
                     showNotify("Yeni talep oluşturuldu.");
@@ -147,18 +150,19 @@
 
             const deleteAnyRecord = async () => {
                 const collectionName = deletingRecord.type === 'saha' ? 'appointments' : 'leads';
-                try { 
-                    await db.collection(collectionName).doc(deletingRecord.id).delete(); 
-                    setDeletingRecord(null); 
-                    showNotify("Silindi."); 
-                } catch (e) { showNotify("Hata!"); }
+                try { await db.collection(collectionName).doc(deletingRecord.id).delete(); setDeletingRecord(null); showNotify("Silindi."); }
+                catch (e) { showNotify("Hata!"); }
             };
 
-            const updateStatus = async (id, status, type) => {
+            const updateStatus = async (id, status, type, note = '') => {
                 const collectionName = type === 'saha' ? 'appointments' : 'leads';
+                const updateData = { status };
+                if (note) updateData.note = note;
+                
                 try { 
-                    await db.collection(collectionName).doc(id).update({ status }); 
-                    showNotify(`Durum: ${status}`); 
+                    await db.collection(collectionName).doc(id).update(updateData); 
+                    showNotify(`Sonuç kaydedildi: ${note || status}`); 
+                    if (showOutcomeModal) setShowOutcomeModal(null);
                 } catch (e) { showNotify("Hata!"); }
             };
 
@@ -174,36 +178,34 @@
                 return matchesCity && matchesSearch;
             });
 
-            if (loading) return <div className="h-screen flex items-center justify-center font-black text-slate-300 uppercase tracking-widest text-xs">Cosgen Yükleniyor...</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center font-black text-slate-300 uppercase tracking-widest text-xs">Yükleniyor...</div>;
 
             return (
                 <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto selection:bg-slate-200">
                     {/* Header */}
                     <nav className="flex justify-between items-center mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <div className="font-black text-2xl tracking-tighter">cos<span className="text-slate-400">gen</span></div>
-                        <div className="flex gap-2">
-                            <button onClick={() => isAdmin ? (activeTab === 'saha' ? setShowForm(true) : setShowLeadForm(true)) : setShowPassModal(true)} 
-                                    className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg">
-                                {isAdmin ? `+ ${activeTab === 'saha' ? 'Yeni Saha' : 'Yeni Talep'}` : "Yönetici"}
-                            </button>
-                        </div>
+                        <CosgenLogo />
+                        <button onClick={() => isAdmin ? (activeTab === 'saha' ? setShowForm(true) : setShowLeadForm(true)) : setShowPassModal(true)} 
+                                className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg">
+                            {isAdmin ? `+ ${activeTab === 'saha' ? 'Yeni Saha' : 'Yeni Talep'}` : "Yönetici Girişi"}
+                        </button>
                     </nav>
 
                     {/* Tabs */}
-                    <div className="flex border-b border-slate-200 mb-8 gap-8 px-4">
-                        <button onClick={() => setActiveTab('saha')} className={`pb-4 font-black uppercase text-xs tracking-widest transition-all ${activeTab === 'saha' ? 'tab-active' : 'text-slate-400 hover:text-slate-600'}`}>
+                    <div className="flex border-b border-slate-200 mb-8 gap-8 px-4 overflow-x-auto no-scrollbar whitespace-nowrap">
+                        <button onClick={() => setActiveTab('saha')} className={`pb-4 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all ${activeTab === 'saha' ? 'tab-active' : 'text-slate-400'}`}>
                             Saha Ziyaretleri ({appointments.length})
                         </button>
-                        <button onClick={() => setActiveTab('sosyal')} className={`pb-4 font-black uppercase text-xs tracking-widest transition-all ${activeTab === 'sosyal' ? 'tab-active' : 'text-slate-400 hover:text-slate-600'}`}>
+                        <button onClick={() => setActiveTab('sosyal')} className={`pb-4 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all ${activeTab === 'sosyal' ? 'tab-active' : 'text-slate-400'}`}>
                             Sosyal Medya Talepleri ({leads.length})
                         </button>
                     </div>
 
-                    {/* Search & Global City Filter */}
+                    {/* Filters */}
                     <div className="flex flex-col md:flex-row gap-4 mb-8">
                         <div className="relative flex-1">
                             <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                            <input type="text" placeholder={activeTab === 'saha' ? "Merkez ara..." : "Salon veya satışçı ara..."} className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl font-bold outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                            <input type="text" placeholder="Arama yap..." className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl font-bold outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
                         <select className="p-4 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase cursor-pointer" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
                             <option value="Hepsi">Tüm Şehirler</option>
@@ -243,32 +245,45 @@
                     {activeTab === 'sosyal' && (
                         <div className="space-y-4">
                             {filteredLeads.map(lead => (
-                                <div key={lead.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border-2 border-indigo-50 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row justify-between lg:items-center gap-6 animate-fade-in">
+                                <div key={lead.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border-2 border-indigo-50 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row justify-between lg:items-center gap-6 animate-fade-in relative overflow-hidden group">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className={`text-[9px] font-black uppercase px-2 py-1 rounded border ${lead.status === 'Aranacak' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>{lead.status}</span>
                                             <div className="p-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded text-white"><Icons.Instagram size={10}/></div>
                                             {isAdmin && <button onClick={() => setDeletingRecord(lead)} className="text-slate-200 hover:text-rose-500 transition-colors ml-2"><Icons.Trash2 size={16}/></button>}
                                         </div>
-                                        <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{lead.salonName}</h4>
-                                        <div className="flex items-center gap-4 mt-2">
-                                            <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wide flex items-center gap-1"><Icons.MapPin size={12}/> {lead.city}</div>
-                                            <a href={`tel:${lead.phone}`} className="text-indigo-600 font-black text-[11px] uppercase tracking-wide flex items-center gap-1 hover:underline"><Icons.Phone size={12}/> {lead.phone}</a>
+                                        <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{lead.salonName}</h4>
+                                        <div className="flex flex-wrap items-center gap-4 mt-2">
+                                            <div className="text-slate-400 font-bold text-[11px] uppercase flex items-center gap-1"><Icons.MapPin size={12}/> {lead.city}</div>
+                                            <a href={`tel:${lead.phone}`} className="text-indigo-600 font-black text-[11px] uppercase flex items-center gap-1 hover:underline"><Icons.Phone size={12}/> {lead.phone}</a>
                                         </div>
+                                        {lead.note && (
+                                            <div className={`mt-4 p-3 rounded-xl border flex items-start gap-2 ${
+                                                lead.note === 'Randevu Alındı' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' :
+                                                lead.note === 'Reddetti' ? 'bg-rose-50 border-rose-100 text-rose-700' :
+                                                lead.note === 'Tekrar Aranacak' ? 'bg-amber-50 border-amber-100 text-amber-700' :
+                                                'bg-slate-50 border-slate-100 text-slate-600'
+                                            }`}>
+                                                <Icons.MessageSquare size={14} className="mt-0.5 opacity-60"/>
+                                                <p className="text-[11px] font-black uppercase tracking-tight">{lead.note}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex flex-wrap gap-8 items-center lg:border-l lg:pl-10 lg:border-slate-50">
                                         <div className="min-w-[120px]">
-                                            <p className="text-[9px] font-black text-slate-300 uppercase mb-1 tracking-widest">Sorumlu Satışçı</p>
-                                            <div className="text-indigo-600 font-bold text-sm flex items-center gap-2 underline decoration-indigo-200 underline-offset-4">{lead.salesRep}</div>
+                                            <p className="text-[9px] font-black text-slate-300 uppercase mb-1">Sorumlu Satışçı</p>
+                                            <div className="text-indigo-600 font-bold text-sm">{lead.salesRep}</div>
                                         </div>
                                         <div className="flex gap-2">
                                             {lead.status === 'Aranacak' ? (
                                                 <>
                                                     <a href={`tel:${lead.phone}`} className="bg-emerald-500 text-white p-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all"><Icons.Phone size={18}/></a>
-                                                    <button onClick={() => updateStatus(lead.id, 'Arandı', 'lead')} className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Arandı Yap</button>
+                                                    <button onClick={() => setShowOutcomeModal(lead)} className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Sonuç Gir</button>
                                                 </>
                                             ) : (
-                                                <div className="text-slate-400 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl"><Icons.CheckCircle size={18}/> Görüşüldü</div>
+                                                <button onClick={() => setShowOutcomeModal(lead)} className="text-slate-400 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all">
+                                                    <Icons.MessageSquare size={16}/> Notu Güncelle
+                                                </button>
                                             )}
                                         </div>
                                     </div>
@@ -277,7 +292,37 @@
                         </div>
                     )}
 
-                    {/* Modals */}
+                    {/* Outcome Modal (Görüşme Sonucu) */}
+                    {showOutcomeModal && (
+                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
+                            <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm text-center shadow-2xl animate-fade-in">
+                                <div className="p-2 bg-indigo-50 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600"><Icons.MessageSquare size={24}/></div>
+                                <h3 className="text-xl font-black mb-1 uppercase tracking-tighter">Görüşme Sonucu</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">{showOutcomeModal.salonName}</p>
+                                
+                                <div className="space-y-3">
+                                    {[
+                                        { label: "Randevu Alındı", color: "bg-emerald-500" },
+                                        { label: "Tekrar Aranacak", color: "bg-amber-500" },
+                                        { label: "Reddetti", color: "bg-rose-500" },
+                                        { label: "Ulaşılamadı", color: "bg-slate-400" }
+                                    ].map((opt, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => updateStatus(showOutcomeModal.id, 'Arandı', 'lead', opt.label)}
+                                            className="w-full p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center gap-3 transition-all group"
+                                        >
+                                            <div className={`w-2.5 h-2.5 rounded-full ${opt.color}`}></div>
+                                            <span className="font-bold text-xs uppercase text-slate-700 tracking-tight group-hover:text-slate-900">{opt.label}</span>
+                                        </button>
+                                    ))}
+                                    <button onClick={() => setShowOutcomeModal(null)} className="w-full py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Vazgeç</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Admin Pass Modal */}
                     {showPassModal && (
                         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
                             <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
@@ -291,12 +336,12 @@
                         </div>
                     )}
 
-                    {/* Saha Kayıt Formu */}
+                    {/* Saha Formu */}
                     {showForm && (activeTab === 'saha') && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                             <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto no-scrollbar">
                                 <div className="p-8 bg-slate-50 border-b flex justify-between items-center sticky top-0 z-10">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2"><Icons.MapPin size={24}/> Saha Ziyareti</h2>
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter">Saha Ziyareti</h2>
                                     <button onClick={() => setShowForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border text-slate-400 hover:text-slate-900"><Icons.X size={20} /></button>
                                 </div>
                                 <form onSubmit={addAppointment} className="p-10 space-y-6">
@@ -316,44 +361,32 @@
                                         <input type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.date} onChange={e => setNewApp({...newApp, date: e.target.value})} />
                                         <input type="time" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.time} onChange={e => setNewApp({...newApp, time: e.target.value})} />
                                     </div>
-                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Saha Kaydını Tamamla</button>
+                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Kaydet</button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* Sosyal Medya Lead Formu */}
+                    {/* Sosyal Medya Formu */}
                     {showLeadForm && (activeTab === 'sosyal') && (
                         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                             <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto no-scrollbar animate-fade-in">
                                 <div className="p-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white flex justify-between items-center sticky top-0 z-10">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2"><Icons.Instagram size={24}/> Yeni Talep</h2>
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter">Yeni Sosyal Talep</h2>
                                     <button onClick={() => setShowLeadForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/40"><Icons.X size={20} /></button>
                                 </div>
                                 <form onSubmit={addLead} className="p-10 space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Salon Adı</label>
-                                        <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Güzellik Salonu İsmi" value={newLead.salonName} onChange={e => setNewLead({...newLead, salonName: e.target.value})} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Telefon Numarası</label>
-                                        <input required type="tel" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="05XX XXX XX XX" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} />
-                                    </div>
+                                    <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Güzellik Salonu İsmi" value={newLead.salonName} onChange={e => setNewLead({...newLead, salonName: e.target.value})} />
+                                    <input required type="tel" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Telefon Numarası" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} />
                                     <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Ulaştığı Bölge/Şehir</label>
-                                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.city} onChange={e => setNewLead({...newLead, city: e.target.value})}>
-                                                {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">Yönlendirilecek Satışçı</label>
-                                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.salesRep} onChange={e => setNewLead({...newLead, salesRep: e.target.value})}>
-                                                {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
-                                            </select>
-                                        </div>
+                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.city} onChange={e => setNewLead({...newLead, city: e.target.value})}>
+                                            {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.salesRep} onChange={e => setNewLead({...newLead, salesRep: e.target.value})}>
+                                            {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
                                     </div>
-                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Talebi Listeye Ekle</button>
+                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Talebi Ekle</button>
                                 </form>
                             </div>
                         </div>
@@ -362,7 +395,7 @@
                     {deletingRecord && (
                         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[70]">
                             <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
-                                <h3 className="text-2xl font-black mb-8 uppercase tracking-tighter">Silinsin mi?</h3>
+                                <h3 className="text-2xl font-black mb-8 uppercase tracking-tighter">Kaydı Sil?</h3>
                                 <div className="flex gap-4">
                                     <button onClick={() => setDeletingRecord(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest">Hayır</button>
                                     <button onClick={deleteAnyRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Evet, Sil</button>
@@ -372,7 +405,7 @@
                     )}
 
                     {notification && (
-                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-widest z-[100] shadow-2xl flex items-center gap-3 animate-fade-in">
+                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-widest z-[200] shadow-2xl flex items-center gap-3 animate-fade-in border border-white/10">
                             <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                             {notification}
                         </div>
