@@ -1,528 +1,317 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Calendar, 
-  MapPin, 
-  User, 
-  CheckCircle, 
-  Clock, 
-  Plus, 
-  Search,
-  Trash2,
-  Lock,
-  X,
-  LogOut,
-  Loader2,
-  Globe,
-  AlertTriangle
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosgen Medical | Saha Takip Sistemi v2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
-// Firebase Modülleri
-import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  doc, 
-  updateDoc, 
-  deleteDoc,
-  serverTimestamp
-} from 'firebase/firestore';
-import { 
-  getAuth, 
-  signInAnonymously, 
-  onAuthStateChanged 
-} from 'firebase/auth';
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-// --- Firebase Yapılandırması ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCzRjEc2aud5MFccPmgzjpeHezrhTfz1Pk",
-  authDomain: "cosgenv2.firebaseapp.com",
-  projectId: "cosgenv2",
-  storageBucket: "cosgenv2.firebasestorage.app",
-  messagingSenderId: "547874140972",
-  appId: "1:547874140972:web:70019681e4f66d2a5bb289",
-  measurementId: "G-QQTWEW2ZD3"
-};
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+        // --- İkon Bileşenleri (Inline SVG) ---
+        const Icon = ({ d, size = 20, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <path d={d} />
+            </svg>
+        );
 
-// Marka Logosu (SVG)
-const CosgenLogo = ({ className = "" }) => (
-  <svg viewBox="0 0 320 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <text x="10" y="65" style={{ font: 'bold 68px "Inter", sans-serif' }} fill="#0f172a" letterSpacing="-3">cos</text>
-    <circle cx="153" cy="43" r="22" fill="none" stroke="#0f172a" strokeWidth="8" />
-    <text x="185" y="65" style={{ font: 'bold 68px "Inter", sans-serif' }} fill="#0f172a" letterSpacing="-3">en</text>
-  </svg>
-);
+        const Icons = {
+            Calendar: (p) => <Icon {...p} d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18" />,
+            MapPin: (p) => <Icon {...p} d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10 a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />,
+            User: (p) => <Icon {...p} d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8" />,
+            CheckCircle: (p) => <Icon {...p} d="M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01 9 11.01" />,
+            Clock: (p) => <Icon {...p} d="M12 12m-10 0a10 10 0 1 0 20 0a10 10 0 1 0-20 0 M12 6v6l4 2" />,
+            Plus: (p) => <Icon {...p} d="M12 5v14 M5 12h14" />,
+            Search: (p) => <Icon {...p} d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z M21 21l-4.35-4.35" />,
+            Trash2: (p) => <Icon {...p} d="M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />,
+            Lock: (p) => <Icon {...p} d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z M7 11V7a5 5 0 0 1 10 0v4" />,
+            X: (p) => <Icon {...p} d="M18 6L6 18M6 6l12 12" />,
+            Globe: (p) => <Icon {...p} d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M2 12h20 M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />,
+            AlertTriangle: (p) => <Icon {...p} d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />
+        };
 
-const App = () => {
-  const ADMIN_PASSWORD = "cosgen45"; 
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCzRjEc2aud5MFccPmgzjpeHezrhTfz1Pk",
+            authDomain: "cosgenv2.firebaseapp.com",
+            projectId: "cosgenv2",
+            storageBucket: "cosgenv2.firebasestorage.app",
+            messagingSenderId: "547874140972",
+            appId: "1:547874140972:web:70019681e4f66d2a5bb289",
+            measurementId: "G-QQTWEW2ZD3"
+        };
 
-  const [user, setUser] = useState(null);
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [showPassModal, setShowPassModal] = useState(false);
-  const [passInput, setPassInput] = useState('');
-  const [filterCity, setFilterCity] = useState('Hepsi');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [notification, setNotification] = useState(null);
-  const [deletingApp, setDeletingApp] = useState(null);
-  const [authError, setAuthError] = useState(null);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-  const salesReps = ['Işıl Engin', 'Hasret Gökot', 'Handan Sevgi', 'Ömür Kaplan', 'Gamze Kaç'];
-  
-  // Türkiye'nin 81 İli ve Önemli İlçeleri
-  const CITY_DISTRICTS = {
-    "Adana": ["Seyhan", "Çukurova", "Sarıçam", "Yüreğir", "Ceyhan", "Kozan"],
-    "Adıyaman": ["Merkez", "Kahta", "Besni"],
-    "Afyonkarahisar": ["Merkez", "Sandıklı", "Dinar"],
-    "Ağrı": ["Merkez", "Patnos", "Doğubayazıt"],
-    "Amasya": ["Merkez", "Merzifon", "Suluova"],
-    "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Gölbaşı"],
-    "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya", "Manavgat", "Serik", "Kumluca"],
-    "Artvin": ["Merkez", "Hopa", "Arhavi"],
-    "Aydın": ["Efeler", "Nazilli", "Söke", "Kuşadası", "Didim"],
-    "Balıkesir": ["Karesi", "Altıeylül", "Bandırma", "Edremit", "Ayvalık"],
-    "Bilecik": ["Merkez", "Bozüyük"],
-    "Bingöl": ["Merkez", "Genç", "Solhan"],
-    "Bitlis": ["Merkez", "Tatvan", "Ahlat"],
-    "Bolu": ["Merkez", "Gerede"],
-    "Burdur": ["Merkez", "Bucak"],
-    "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım", "İnegöl", "Gemlik", "Mustafakemalpaşa"],
-    "Çanakkale": ["Merkez", "Biga", "Çan", "Gelibolu"],
-    "Çankırı": ["Merkez", "Çerkeş"],
-    "Çorum": ["Merkez", "Sungurlu", "Osmancık"],
-    "Denizli": ["Pamukkale", "Merkezefendi", "Acıpayam", "Tavas"],
-    "Diyarbakır": ["Kayapınar", "Bağlar", "Yenişehir", "Sur", "Ergani", "Bismil"],
-    "Edirne": ["Merkez", "Keşan", "Uzunköprü"],
-    "Elazığ": ["Merkez", "Kovancılar"],
-    "Erzincan": ["Merkez", "Tercan"],
-    "Erzurum": ["Yakutiye", "Palandöken", "Aziziye", "Oltu"],
-    "Eskişehir": ["Odunpazarı", "Tepebaşı"],
-    "Gaziantep": ["Şahinbey", "Şehitkamil", "Nizip", "İslahiye"],
-    "Giresun": ["Merkez", "Bulancak", "Tirebolu"],
-    "Gümüşhane": ["Merkez", "Kelkit"],
-    "Hakkari": ["Merkez", "Yüksekova"],
-    "Hatay": ["Antakya", "İskenderun", "Defne", "Dörtyol", "Samandağ"],
-    "Isparta": ["Merkez", "Eğirdir", "Yalvaç"],
-    "Mersin": ["Yenişehir", "Mezitli", "Toroslar", "Akdeniz", "Tarsus", "Silifke", "Anamur"],
-    "İstanbul": ["Beşiktaş", "Kadıköy", "Şişli", "Üsküdar", "Fatih", "Bakırköy", "Ataşehir", "Beylikdüzü", "Sarıyer", "Başakşehir", "Esenyurt"],
-    "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli", "Gaziemir", "Menemen", "Torbalı", "Aliağa", "Çeşme"],
-    "Kars": ["Merkez", "Sarıkamış"],
-    "Kastamonu": ["Merkez", "Tosya", "İnebolu"],
-    "Kayseri": ["Melikgazi", "Kocasinan", "Talas", "Develi"],
-    "Kırklareli": ["Merkez", "Lüleburgaz", "Babaeski"],
-    "Kırşehir": ["Merkez", "Kaman"],
-    "Kocaeli": ["İzmit", "Gebze", "Gölcük", "Körfez", "Derince", "Kartepe"],
-    "Konya": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir", "Beyşehir"],
-    "Kütahya": ["Merkez", "Tavşanlı", "Gediz"],
-    "Malatya": ["Yeşilyurt", "Battalgazi", "Doğanşehir"],
-    "Manisa": ["Yunusemre", "Şehzadeler", "Akhisar", "Turgutlu", "Salihli", "Soma"],
-    "Kahramanmaraş": ["Onikişubat", "Dulkadiroğlu", "Elbistan", "Afşin"],
-    "Mardin": ["Artuklu", "Kızıltepe", "Midyat", "Nusaybin"],
-    "Muğla": ["Menteşe", "Bodrum", "Fethiye", "Marmaris", "Milas", "Dalaman"],
-    "Muş": ["Merkez", "Bulanık"],
-    "Nevşehir": ["Merkez", "Ürgüp", "Avanos"],
-    "Niğde": ["Merkez", "Bor"],
-    "Ordu": ["Altınordu", "Ünye", "Fatsa"],
-    "Rize": ["Merkez", "Ardeşen", "Çayeli"],
-    "Sakarya": ["Adapazarı", "Serdivan", "Erenler", "Hendek", "Akyazı"],
-    "Samsun": ["Atakum", "İlkadım", "Canik", "Bafra", "Çarşamba"],
-    "Siirt": ["Merkez", "Kurtalan"],
-    "Sinop": ["Merkez", "Boyabat"],
-    "Sivas": ["Merkez", "Şarkışla", "Yıldızeli"],
-    "Tekirdağ": ["Süleymanpaşa", "Çorlu", "Çerkezköy", "Kapaklı"],
-    "Tokat": ["Merkez", "Erbaa", "Turhal", "Niksar"],
-    "Trabzon": ["Ortahisar", "Akçaabat", "Araklı", "Of"],
-    "Tunceli": ["Merkez"],
-    "Şanlıurfa": ["Haliliye", "Eyyübiye", "Karaköprü", "Siverek", "Viranşehir", "Suruç"],
-    "Uşak": ["Merkez", "Banaz"],
-    "Van": ["İpekyolu", "Tuşba", "Edremit", "Erciş"],
-    "Yozgat": ["Merkez", "Sorgun"],
-    "Zonguldak": ["Merkez", "Ereğli", "Çaycuma"],
-    "Aksaray": ["Merkez"],
-    "Bayburt": ["Merkez"],
-    "Karaman": ["Merkez"],
-    "Kırıkkale": ["Merkez", "Yahşihan"],
-    "Batman": ["Merkez", "Kozluk"],
-    "Şırnak": ["Merkez", "Cizre", "Silopi"],
-    "Bartın": ["Merkez"],
-    "Ardahan": ["Merkez"],
-    "Iğdır": ["Merkez"],
-    "Yalova": ["Merkez", "Çınarcık"],
-    "Karabük": ["Merkez", "Safranbolu"],
-    "Kilis": ["Merkez"],
-    "Osmaniye": ["Merkez", "Kadirli"],
-    "Düzce": ["Merkez", "Akçakoca"]
-  };
+        const CITY_DISTRICTS = {
+            "Adana": ["Seyhan", "Çukurova", "Sarıçam", "Yüreğir", "Ceyhan", "Kozan"], "Adıyaman": ["Merkez", "Kahta", "Besni"], "Afyonkarahisar": ["Merkez", "Sandıklı", "Dinar"], "Ağrı": ["Merkez", "Patnos", "Doğubayazıt"], "Amasya": ["Merkez", "Merzifon", "Suluova"], "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Gölbaşı"], "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya", "Manavgat", "Serik", "Kumluca"], "Artvin": ["Merkez", "Hopa", "Arhavi"], "Aydın": ["Efeler", "Nazilli", "Söke", "Kuşadası", "Didim"], "Balıkesir": ["Karesi", "Altıeylül", "Bandırma", "Edremit", "Ayvalık"], "Bilecik": ["Merkez", "Bozüyük"], "Bingöl": ["Merkez", "Genç", "Solhan"], "Bitlis": ["Merkez", "Tatvan", "Ahlat"], "Bolu": ["Merkez", "Gerede"], "Burdur": ["Merkez", "Bucak"], "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım", "İnegöl", "Gemlik", "Mustafakemalpaşa"], "Çanakkale": ["Merkez", "Biga", "Çan", "Gelibolu"], "Çankırı": ["Merkez", "Çerkeş"], "Çorum": ["Merkez", "Sungurlu", "Osmancık"], "Denizli": ["Pamukkale", "Merkezefendi", "Acıpayam", "Tavas"], "Diyarbakır": ["Kayapınar", "Bağlar", "Yenişehir", "Sur", "Ergani", "Bismil"], "Edirne": ["Merkez", "Keşan", "Uzunköprü"], "Elazığ": ["Merkez", "Kovancılar"], "Erzincan": ["Merkez", "Tercan"], "Erzurum": ["Yakutiye", "Palandöken", "Aziziye", "Oltu"], "Eskişehir": ["Odunpazarı", "Tepebaşı"], "Gaziantep": ["Şahinbey", "Şehitkamil", "Nizip", "İslahiye"], "Giresun": ["Merkez", "Bulancak", "Tirebolu"], "Gümüşhane": ["Merkez", "Kelkit"], "Hakkari": ["Merkez", "Yüksekova"], "Hatay": ["Antakya", "İskenderun", "Defne", "Dörtyol", "Samandağ"], "Isparta": ["Merkez", "Eğirdir", "Yalvaç"], "Mersin": ["Yenişehir", "Mezitli", "Toroslar", "Akdeniz", "Tarsus", "Silifke", "Anamur"], "İstanbul": ["Beşiktaş", "Kadıköy", "Şişli", "Üsküdar", "Fatih", "Bakırköy", "Ataşehir", "Beylikdüzü", "Sarıyer", "Başakşehir", "Esenyurt"], "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli", "Gaziemir", "Menemen", "Torbalı", "Aliağa", "Çeşme"], "Kars": ["Merkez", "Sarıkamış"], "Kastamonu": ["Merkez", "Tosya", "İnebolu"], "Kayseri": ["Melikgazi", "Kocasinan", "Talas", "Develi"], "Kırklareli": ["Merkez", "Lüleburgaz", "Babaeski"], "Kırşehir": ["Merkez", "Kaman"], "Kocaeli": ["İzmit", "Gebze", "Gölcük", "Körfez", "Derince", "Kartepe"], "Konya": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir", "Beyşehir"], "Kütahya": ["Merkez", "Tavşanlı", "Gediz"], "Malatya": ["Yeşilyurt", "Battalgazi", "Doğanşehir"], "Manisa": ["Yunusemre", "Şehzadeler", "Akhisar", "Turgutlu", "Salihli", "Soma"], "Kahramanmaraş": ["Onikişubat", "Dulkadiroğlu", "Elbistan", "Afşin"], "Mardin": ["Artuklu", "Kızıltepe", "Midyat", "Nusaybin"], "Muğla": ["Menteşe", "Bodrum", "Fethiye", "Marmaris", "Milas", "Dalaman"], "Muş": ["Merkez", "Bulanık"], "Nevşehir": ["Merkez", "Ürgüp", "Avanos"], "Niğde": ["Merkez", "Bor"], "Ordu": ["Altınordu", "Ünye", "Fatsa"], "Rize": ["Merkez", "Ardeşen", "Çayeli"], "Sakarya": ["Adapazarı", "Serdivan", "Erenler", "Hendek", "Akyazı"], "Samsun": ["Atakum", "İlkadım", "Canik", "Bafra", "Çarşamba"], "Siirt": ["Merkez", "Kurtalan"], "Sinop": ["Merkez", "Boyabat"], "Sivas": ["Merkez", "Şarkışla", "Yıldızeli"], "Tekirdağ": ["Süleymanpaşa", "Çorlu", "Çerkezköy", "Kapaklı"], "Tokat": ["Merkez", "Erbaa", "Turhal", "Niksar"], "Trabzon": ["Ortahisar", "Akçaabat", "Araklı", "Of"], "Tunceli": ["Merkez"], "Şanlıurfa": ["Haliliye", "Eyyübiye", "Karaköprü", "Siverek", "Viranşehir", "Suruç"], "Uşak": ["Merkez", "Banaz"], "Van": ["İpekyolu", "Tuşba", "Edremit", "Erciş"], "Yozgat": ["Merkez", "Sorgun"], "Zonguldak": ["Merkez", "Ereğli", "Çaycuma"], "Aksaray": ["Merkez"], "Bayburt": ["Merkez"], "Karaman": ["Merkez"], "Kırıkkale": ["Merkez", "Yahşihan"], "Batman": ["Merkez", "Kozluk"], "Şırnak": ["Merkez", "Cizre", "Silopi"], "Bartın": ["Merkez"], "Ardahan": ["Merkez"], "Iğdır": ["Merkez"], "Yalova": ["Merkez", "Çınarcık"], "Karabük": ["Merkez", "Safranbolu"], "Kilis": ["Merkez"], "Osmaniye": ["Merkez", "Kadirli"], "Düzce": ["Merkez", "Akçakoca"]
+        };
 
-  const [newApp, setNewApp] = useState({ 
-    centerName: '', 
-    city: 'Adana', 
-    district: 'Seyhan', 
-    date: '', 
-    time: '', 
-    salesRep: salesReps[0] 
-  });
+        const App = () => {
+            const ADMIN_PASSWORD = "cosgen45"; 
+            const [appointments, setAppointments] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [showForm, setShowForm] = useState(false);
+            const [showPassModal, setShowPassModal] = useState(false);
+            const [passInput, setPassInput] = useState('');
+            const [filterCity, setFilterCity] = useState('Hepsi');
+            const [searchQuery, setSearchQuery] = useState('');
+            const [notification, setNotification] = useState(null);
+            const [deletingApp, setDeletingApp] = useState(null);
 
-  // Kimlik Doğrulama Döngüsü
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        await signInAnonymously(auth);
-      } catch (err) {
-        console.error("Giriş hatası:", err);
-        setAuthError("Firebase Kimlik Doğrulama hatası. Lütfen Anonymous girişi etkinleştirin.");
-      }
-    };
-    initAuth();
+            const salesReps = ['Işıl Engin', 'Hasret Gökot', 'Handan Sevgi', 'Ömür Kaplan', 'Gamze Kaç'];
+            const [newApp, setNewApp] = useState({ centerName: '', city: 'İstanbul', district: 'Beşiktaş', date: '', time: '', salesRep: salesReps[0] });
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
+            useEffect(() => {
+                auth.signInAnonymously().catch(err => console.error("Giriş hatası:", err));
+                const unsubscribe = db.collection('appointments').onSnapshot(snapshot => {
+                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    data.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
+                    setAppointments(data);
+                    setLoading(false);
+                }, err => setLoading(false));
+                return () => unsubscribe();
+            }, []);
 
-  // Veri Döngüsü
-  useEffect(() => {
-    if (!user) return;
+            const showNotify = (msg) => { setNotification(msg); setTimeout(() => setNotification(null), 3000); };
 
-    const appointmentsRef = collection(db, 'appointments');
-    
-    const unsubscribe = onSnapshot(appointmentsRef, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      data.sort((a, b) => new Date(`${b.date} ${b.time}`) - new Date(`${a.date} ${a.time}`));
-      setAppointments(data);
-      setLoading(false);
-    }, (error) => {
-      console.error("Firestore hatası:", error);
-      setLoading(false);
-    });
+            const handlePasswordSubmit = (e) => {
+                e.preventDefault();
+                if (passInput === ADMIN_PASSWORD) { setIsAdmin(true); setShowPassModal(false); setPassInput(''); showNotify("Yönetici girişi başarılı."); }
+                else showNotify("Hatalı şifre!");
+            };
 
-    return () => unsubscribe();
-  }, [user]);
+            const addAppointment = async (e) => {
+                e.preventDefault();
+                try {
+                    await db.collection('appointments').add({ ...newApp, status: 'Beklemede', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    setShowForm(false);
+                    setNewApp({ centerName: '', city: 'İstanbul', district: 'Beşiktaş', date: '', time: '', salesRep: salesReps[0] });
+                    showNotify("Ziyaret kaydedildi.");
+                } catch (e) { showNotify("Hata!"); }
+            };
 
-  const showNotify = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 3000);
-  };
+            const deleteRecord = async () => {
+                try { await db.collection('appointments').doc(deletingApp.id).delete(); setDeletingApp(null); showNotify("Silindi."); }
+                catch (e) { showNotify("Hata!"); }
+            };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    if (passInput === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      setShowPassModal(false);
-      setPassInput('');
-      showNotify("Yönetici yetkisi aktif edildi.");
-    } else {
-      showNotify("Hatalı şifre!");
-    }
-  };
+            const updateStatus = async (id, status) => {
+                try { await db.collection('appointments').doc(id).update({ status }); showNotify(`Durum: ${status}`); }
+                catch (e) { showNotify("Hata!"); }
+            };
 
-  const addAppointment = async (e) => {
-    e.preventDefault();
-    try {
-      await addDoc(collection(db, 'appointments'), { 
-        ...newApp, 
-        status: 'Beklemede', 
-        createdAt: serverTimestamp() 
-      });
-      setShowForm(false);
-      setNewApp({ centerName: '', city: 'Adana', district: 'Seyhan', date: '', time: '', salesRep: salesReps[0] });
-      showNotify("Yeni ziyaret başarıyla kaydedildi.");
-    } catch (err) {
-      showNotify("Kayıt sırasında bir hata oluştu.");
-    }
-  };
+            const filtered = appointments.filter(a => {
+                const matchesCity = filterCity === 'Hepsi' || a.city === filterCity;
+                const matchesSearch = (a.centerName || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                     (a.salesRep || "").toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCity && matchesSearch;
+            });
 
-  const deleteAppointment = async () => {
-    if (!isAdmin || !deletingApp) return;
-    try {
-      await deleteDoc(doc(db, 'appointments', deletingApp.id));
-      setDeletingApp(null);
-      showNotify("Kayıt kalıcı olarak silindi.");
-    } catch (err) {
-      showNotify("Silme işlemi başarısız.");
-    }
-  };
-
-  const updateStatus = async (id, newStatus) => {
-    try {
-      await updateDoc(doc(db, 'appointments', id), { status: newStatus });
-      showNotify(`Durum: ${newStatus}`);
-    } catch (err) {
-      showNotify("Güncelleme hatası.");
-    }
-  };
-
-  const filteredApps = appointments.filter(app => {
-    const matchesCity = filterCity === 'Hepsi' || app.city === filterCity;
-    const center = (app.centerName || "").toLowerCase();
-    const rep = (app.salesRep || "").toLowerCase();
-    const queryStr = searchQuery.toLowerCase();
-    return matchesCity && (center.includes(queryStr) || rep.includes(queryStr));
-  });
-
-  if (loading) return (
-    <div className="h-screen flex flex-col items-center justify-center bg-white">
-      <Loader2 className="w-12 h-12 animate-spin text-slate-900 mb-4" />
-      <span className="text-[10px] font-black tracking-[0.3em] text-slate-400 uppercase">Cosgen Yükleniyor</span>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100">
-      {/* Kimlik Doğrulama Hata Paneli */}
-      {authError && (
-        <div className="bg-rose-600 text-white p-4 text-center text-xs font-bold uppercase tracking-widest animate-pulse">
-          {authError}
-        </div>
-      )}
-
-      {/* Navigasyon Çubuğu */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-          <CosgenLogo className="h-10 w-auto" />
-          <div className="flex items-center gap-3">
-            {isAdmin && (
-              <button 
-                onClick={() => setIsAdmin(false)} 
-                className="hidden md:flex items-center gap-2 px-4 py-2 text-rose-600 font-bold text-xs uppercase tracking-wider hover:bg-rose-50 rounded-xl transition-all"
-              >
-                <LogOut size={16} /> Yetkiyi Kapat
-              </button>
-            )}
-            <button 
-              onClick={() => isAdmin ? setShowForm(true) : setShowPassModal(true)} 
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm shadow-sm transition-all active:scale-95 ${isAdmin ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-slate-900 text-white shadow-slate-200'}`}
-            >
-              {isAdmin ? <><Plus size={18} /> Yeni Kayıt</> : <><Lock size={16} /> Yönetici Girişi</>}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* İstatistik Kartları */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: 'Bekleyen', val: appointments.filter(a => a.status === 'Beklemede').length, color: 'text-amber-500', icon: Clock },
-            { label: 'Tamamlanan', val: appointments.filter(a => a.status === 'Tamamlandı').length, color: 'text-emerald-500', icon: CheckCircle },
-            { label: 'Aktif Şehir', val: new Set(appointments.map(a => a.city)).size, color: 'text-slate-900', icon: Globe }
-          ].map((stat, idx) => (
-            <div key={idx} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-start justify-between">
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                <h3 className={`text-3xl font-black ${stat.color}`}>{stat.val}</h3>
-              </div>
-              <div className={`p-3 rounded-2xl bg-slate-50 ${stat.color}`}>
-                <stat.icon size={20} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filtreleme Çubuğu */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Merkez veya temsilci ara..." 
-              className="w-full pl-11 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-4 focus:ring-slate-900/5 transition-all font-medium text-slate-700"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <select 
-            className="px-6 py-4 bg-white border border-slate-200 rounded-2xl outline-none font-bold text-slate-700 appearance-none cursor-pointer"
-            value={filterCity}
-            onChange={(e) => setFilterCity(e.target.value)}
-          >
-            <option value="Hepsi">Tüm Türkiye</option>
-            {Object.keys(CITY_DISTRICTS).sort((a, b) => a.localeCompare(b, 'tr')).map(city => <option key={city} value={city}>{city}</option>)}
-          </select>
-        </div>
-
-        {/* Kayıt Listesi */}
-        <div className="space-y-4">
-          {filteredApps.map(app => (
-            <div key={app.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center gap-6 animate-fade-in">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase border tracking-widest ${
-                    app.status === 'Beklemede' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                  }`}>
-                    {app.status}
-                  </span>
-                  {isAdmin && (
-                    <button onClick={() => setDeletingApp(app)} className="text-slate-300 hover:text-rose-500 p-1 transition-colors">
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+            if (loading) return (
+                <div className="h-screen flex flex-col items-center justify-center bg-white space-y-4">
+                    <div className="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="font-black text-slate-300 uppercase tracking-[0.3em] text-[10px]">Cosgen Yükleniyor</div>
                 </div>
-                <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{app.centerName}</h4>
-                <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[11px] uppercase tracking-wide">
-                  <MapPin size={12} /> {app.district} / {app.city} / TÜRKİYE
+            );
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto selection:bg-indigo-100">
+                    {/* Header */}
+                    <nav className="flex justify-between items-center mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 sticky top-4 z-40 backdrop-blur-md bg-white/90">
+                        <div className="font-black text-2xl tracking-tighter flex items-center gap-1">
+                            <span className="text-slate-900">cos</span><span className="text-slate-400">gen</span>
+                        </div>
+                        <div className="flex gap-2">
+                            {isAdmin && (
+                                <button onClick={() => setIsAdmin(false)} className="px-4 py-3 text-rose-600 font-bold text-[10px] uppercase tracking-widest hover:bg-rose-50 rounded-2xl transition-all hidden md:block">Çıkış</button>
+                            )}
+                            <button onClick={() => isAdmin ? setShowForm(true) : setShowPassModal(true)} className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-slate-200 flex items-center gap-2">
+                                {isAdmin ? <><Icons.Plus size={16}/> Yeni Kayıt</> : <><Icons.Lock size={16}/> Yönetici</>}
+                            </button>
+                        </div>
+                    </nav>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        {[
+                            { label: 'Bekleyen', val: appointments.filter(x => x.status === 'Beklemede').length, color: 'text-amber-500', icon: Icons.Clock },
+                            { label: 'Tamamlanan', val: appointments.filter(x => x.status === 'Tamamlandı').length, color: 'text-emerald-500', icon: Icons.CheckCircle },
+                            { label: 'Aktif Şehir', val: new Set(appointments.map(a => a.city)).size, color: 'text-slate-900', icon: Icons.Globe }
+                        ].map((s, i) => (
+                            <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm flex flex-col justify-between h-32">
+                                <div className="flex justify-between items-start">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{s.label}</p>
+                                    <s.icon size={16} className="text-slate-100"/>
+                                </div>
+                                <h3 className={`text-3xl font-black ${s.color}`}>{s.val}</h3>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Filters */}
+                    <div className="flex flex-col md:flex-row gap-4 mb-8">
+                        <div className="relative flex-1">
+                            <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                            <input type="text" placeholder="Merkez veya temsilci ara..." className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl font-bold outline-none focus:ring-4 focus:ring-slate-900/5 transition-all" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                        </div>
+                        <select className="p-4 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase cursor-pointer appearance-none px-8" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
+                            <option value="Hepsi">Tüm Türkiye</option>
+                            {Object.keys(CITY_DISTRICTS).sort((a,b) => a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+
+                    {/* List */}
+                    <div className="space-y-4">
+                        {filtered.map(app => (
+                            <div key={app.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-50 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row justify-between lg:items-center gap-6 animate-fade-in group">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full border tracking-widest ${app.status === 'Beklemede' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{app.status}</span>
+                                        {isAdmin && <button onClick={() => setDeletingApp(app)} className="text-slate-200 hover:text-rose-500 transition-colors p-1"><Icons.Trash2 size={16}/></button>}
+                                    </div>
+                                    <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-2">{app.centerName}</h4>
+                                    <div className="flex items-center gap-1 text-slate-400 font-bold text-[11px] uppercase tracking-wide">
+                                        <Icons.MapPin size={12}/> {app.district} / {app.city} / TÜRKİYE
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap gap-8 items-center lg:border-l lg:pl-10 lg:border-slate-50">
+                                    <div><p className="text-[10px] font-black text-slate-300 uppercase mb-1 tracking-widest">Vakit</p><div className="text-slate-700 font-bold text-sm flex items-center gap-2"><Icons.Calendar size={14} className="text-slate-200"/> {app.date} | {app.time}</div></div>
+                                    <div><p className="text-[10px] font-black text-slate-300 uppercase mb-1 tracking-widest">Temsilci</p><div className="text-slate-700 font-bold text-sm flex items-center gap-2"><Icons.User size={14} className="text-slate-200"/> {app.salesRep}</div></div>
+                                    <div className="lg:min-w-[140px]">
+                                        {app.status === 'Beklemede' ? 
+                                            <button onClick={() => updateStatus(app.id, 'Tamamlandı')} className="w-full bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-800 active:scale-95 transition-all">Tamamla</button> : 
+                                            <div className="text-emerald-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 py-3"><Icons.CheckCircle size={18}/> Bitti</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {filtered.length === 0 && (
+                            <div className="py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+                                <Icons.Search size={40} className="mx-auto text-slate-100 mb-4"/>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kayıt Bulunamadı</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Modals */}
+                    {showPassModal && (
+                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+                            <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl animate-fade-in">
+                                <Icons.Lock size={40} className="mx-auto mb-6 text-slate-900" />
+                                <h3 className="text-2xl font-black mb-1 uppercase tracking-tighter">Yönetici Girişi</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Devam etmek için şifreyi girin</p>
+                                <form onSubmit={handlePasswordSubmit}>
+                                    <input type="password" autoFocus className="w-full p-5 bg-slate-50 rounded-[1.5rem] mb-6 text-center font-black text-2xl outline-none border-2 border-transparent focus:border-slate-900 transition-all" value={passInput} onChange={e => setPassInput(e.target.value)} placeholder="••••" />
+                                    <div className="flex gap-4">
+                                        <button type="button" onClick={() => setShowPassModal(false)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest">Kapat</button>
+                                        <button className="flex-[2] bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Giriş Yap</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {showForm && (
+                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto no-scrollbar animate-fade-in">
+                                <div className="p-8 bg-slate-50 border-b flex justify-between items-center sticky top-0 z-10">
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Saha Kaydı Oluştur</h2>
+                                    <button onClick={() => setShowForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border text-slate-400 hover:text-slate-900 transition-all shadow-sm"><Icons.X size={20} /></button>
+                                </div>
+                                <form onSubmit={addAppointment} className="p-10 space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Merkez Adı</label>
+                                        <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-slate-900" placeholder="Örn: Ege Medikal" value={newApp.centerName} onChange={e => setNewApp({...newApp, centerName: e.target.value})} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Şehir</label>
+                                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.city} onChange={e => setNewApp({...newApp, city: e.target.value, district: CITY_DISTRICTS[e.target.value][0]})}>
+                                                {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">İlçe</label>
+                                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.district} onChange={e => setNewApp({...newApp, district: e.target.value})}>
+                                                {(CITY_DISTRICTS[newApp.city] || []).map(d => <option key={d} value={d}>{d}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sorumlu Temsilci</label>
+                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.salesRep} onChange={e => setNewApp({...newApp, salesRep: e.target.value})}>
+                                            {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Tarih</label>
+                                            <input type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.date} onChange={e => setNewApp({...newApp, date: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Saat</label>
+                                            <input type="time" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.time} onChange={e => setNewApp({...newApp, time: e.target.value})} />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all active:scale-[0.98]">Kaydet</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {deletingApp && (
+                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+                            <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
+                                <Icons.AlertTriangle size={48} className="mx-auto mb-6 text-rose-500" />
+                                <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter">Kaydı Sil?</h3>
+                                <p className="text-slate-500 font-bold text-[11px] mb-8 leading-relaxed uppercase tracking-wider">"{deletingApp.centerName}" kalıcı olarak silinecektir.</p>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setDeletingApp(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest">Vazgeç</button>
+                                    <button onClick={deleteRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Evet, Sil</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {notification && (
+                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-widest z-[200] shadow-2xl flex items-center gap-3 animate-fade-in border border-white/10">
+                            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                            {notification}
+                        </div>
+                    )}
                 </div>
-              </div>
+            );
+        };
 
-              <div className="flex flex-wrap gap-8 py-6 lg:py-0 lg:px-10 lg:border-l lg:border-slate-100">
-                <div className="min-w-[120px]">
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Ziyaret Vakti</p>
-                  <div className="flex items-center gap-2 text-slate-700 font-bold">
-                    <Calendar size={14} className="text-slate-300" />
-                    <span>{app.date}</span>
-                    <span className="text-slate-200">|</span>
-                    <span>{app.time}</span>
-                  </div>
-                </div>
-                <div className="min-w-[120px]">
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Temsilci</p>
-                  <div className="flex items-center gap-2 text-slate-700 font-bold">
-                    <User size={14} className="text-slate-300" />
-                    <span>{app.salesRep}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:min-w-[180px]">
-                {app.status === 'Beklemede' ? (
-                  <button 
-                    onClick={() => updateStatus(app.id, 'Tamamlandı')} 
-                    className="w-full bg-slate-900 text-white px-6 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg"
-                  >
-                    Tamamla
-                  </button>
-                ) : (
-                  <div className="flex items-center justify-center gap-2 py-4 text-emerald-600 font-black text-[11px] uppercase tracking-widest">
-                    <CheckCircle size={20} /> Ziyaret Bitti
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {filteredApps.length === 0 && !loading && (
-            <div className="text-center py-24 bg-white border-2 border-dashed border-slate-100 rounded-[3rem]">
-              <Search size={48} className="mx-auto text-slate-100 mb-4" />
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Aranan kriterlerde kayıt bulunamadı</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Yönetici Şifre Modalı */}
-      {showPassModal && (
-        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
-            <Lock size={40} className="mx-auto mb-6 text-slate-900" />
-            <h2 className="text-2xl font-black mb-1 uppercase tracking-tighter">Yönetici Paneli</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Lütfen şifrenizi giriniz</p>
-            <form onSubmit={handlePasswordSubmit}>
-              <input 
-                type="password" 
-                autoFocus 
-                className="w-full p-5 bg-slate-50 border-2 border-transparent focus:border-slate-900 rounded-[1.5rem] outline-none text-center font-black text-2xl mb-6 shadow-inner" 
-                value={passInput} 
-                onChange={e => setPassInput(e.target.value)} 
-                placeholder="••••" 
-              />
-              <div className="flex gap-4">
-                <button type="button" onClick={() => setShowPassModal(false)} className="flex-1 py-4 font-black text-slate-400 uppercase text-[10px] tracking-widest">Kapat</button>
-                <button type="submit" className="flex-[2] bg-slate-900 text-white font-black py-4 rounded-2xl uppercase text-[10px] tracking-widest shadow-xl shadow-slate-300">Giriş Yap</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Yeni Kayıt Formu Modalı */}
-      {showForm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-[3rem] w-full max-w-xl overflow-hidden shadow-2xl animate-fade-in max-h-[95vh] overflow-y-auto no-scrollbar">
-            <div className="p-8 bg-slate-50 border-b flex justify-between items-center sticky top-0 z-10">
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Saha Kaydı Oluştur</h2>
-              <button onClick={() => setShowForm(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm text-slate-400 hover:text-slate-900 transition-all border border-slate-200">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={addAppointment} className="p-10 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Merkez Adı</label>
-                <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-slate-900 text-slate-800" placeholder="Örn: Ege Medikal" value={newApp.centerName} onChange={e => setNewApp({...newApp, centerName: e.target.value})} />
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Şehir</label>
-                  <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.city} onChange={(e) => setNewApp({...newApp, city: e.target.value, district: CITY_DISTRICTS[e.target.value][0]})}>
-                    {Object.keys(CITY_DISTRICTS).sort((a, b) => a.localeCompare(b, 'tr')).map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">İlçe</label>
-                  <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.district} onChange={e => setNewApp({...newApp, district: e.target.value})}>
-                    {(CITY_DISTRICTS[newApp.city] || []).map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Sorumlu Temsilci</label>
-                <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none" value={newApp.salesRep} onChange={e => setNewApp({...newApp, salesRep: e.target.value})}>
-                  {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Tarih</label>
-                  <input type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none text-slate-800" value={newApp.date} onChange={e => setNewApp({...newApp, date: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Saat</label>
-                  <input type="time" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none text-slate-800" value={newApp.time} onChange={e => setNewApp({...newApp, time: e.target.value})} />
-                </div>
-              </div>
-
-              <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all active:scale-[0.98]">Veritabanına Kaydet</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Silme Onay Modalı */}
-      {deletingApp && (
-        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[70]">
-          <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl border border-white/20">
-            <AlertTriangle size={48} className="mx-auto mb-6 text-rose-500" />
-            <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter">Kaydı Sil?</h3>
-            <p className="text-slate-500 font-bold text-sm mb-8 leading-relaxed">"{deletingApp.centerName}" kaydı kalıcı olarak silinecektir.</p>
-            <div className="flex gap-4">
-              <button onClick={() => setDeletingApp(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest">Vazgeç</button>
-              <button onClick={deleteAppointment} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-rose-200">Kayıt Sil</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bildirim Toast Mesajı */}
-      {notification && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-widest z-[100] shadow-2xl flex items-center gap-3 animate-fade-in border border-white/10">
-          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-          {notification}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default App;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
