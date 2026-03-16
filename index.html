@@ -17,12 +17,34 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; margin: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #f1f5f9; 
+            margin: 0;
+            color: #1e293b;
+        }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .tab-active { color: #0f172a; border-bottom: 3px solid #0f172a; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .tab-btn-active {
+            background-color: #0f172a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+        }
+
+        .card-shadow {
+            box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -31,9 +53,9 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- Icon Components ---
+        // --- İkon Bileşenleri ---
         const Icon = ({ d, size = 20, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 <path d={d} />
             </svg>
         );
@@ -55,8 +77,9 @@
         };
 
         const CosgenLogo = () => (
-            <div className="font-black text-2xl tracking-tighter text-slate-900">
-                cos<span className="text-slate-400">gen</span>
+            <div className="font-extrabold text-2xl tracking-tighter text-slate-900 flex items-center">
+                <div className="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center mr-2 text-sm italic">C</div>
+                cos<span className="text-indigo-600">gen</span>
             </div>
         );
 
@@ -76,7 +99,7 @@
         const auth = firebase.auth();
 
         const CITY_DISTRICTS = {
-            "Adana": ["Seyhan", "Çukurova", "Sarıçam", "Yüreğir", "Ceyhan", "Kozan"], "Adıyaman": ["Merkez", "Kahta", "Besni"], "Afyonkarahisar": ["Merkez", "Sandıklı", "Dinar"], "Ağrı": ["Merkez", "Patnos", "Doğubayazıt"], "Amasya": ["Merkez", "Merzifon", "Suluova"], "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Gölbaşı"], "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya", "Manavgat", "Serik", "Kumluca"], "Artvin": ["Merkez", "Hopa", "Arhavi"], "Aydın": ["Efeler", "Nazilli", "Söke", "Kuşadası", "Didim"], "Balıkesir": ["Karesi", "Altıeylül", "Bandırma", "Edremit", "Ayvalık"], "Bilecik": ["Merkez", "Bozüyük"], "Bingöl": ["Merkez", "Genç", "Solhan"], "Bitlis": ["Merkez", "Tatvan", "Ahlat"], "Bolu": ["Merkez", "Gerede"], "Burdur": ["Merkez", "Bucak"], "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım", "İnegöl", "Gemlik", "Mustafakemalpaşa"], "Çanakkale": ["Merkez", "Biga", "Çan", "Gelibolu"], "Çankırı": ["Merkez", "Çerkeş"], "Çorum": ["Merkez", "Sungurlu", "Osmancık"], "Denizli": ["Pamukkale", "Merkezefendi", "Acıpayam", "Tavas"], "Diyarbakır": ["Kayapınar", "Bağlar", "Yenişehir", "Sur", "Ergani", "Bismil"], "Edirne": ["Merkez", "Keşan", "Uzunköprü"], "Elazığ": ["Merkez", "Kovancılar"], "Erzincan": ["Merkez", "Tercan"], "Erzurum": ["Yakutiye", "Palandöken", "Aziziye", "Oltu"], "Eskişehir": ["Odunpazarı", "Tepebaşı"], "Gaziantep": ["Şahinbey", "Şehitkamil", "Nizip", "İslahiye"], "Giresun": ["Merkez", "Bulancak", "Tirebolu"], "Gümüşhane": ["Merkez", "Kelkit"], "Hakkari": ["Merkez", "Yüksekova"], "Hatay": ["Antakya", "İskenderun", "Defne", "Dörtyol", "Samandağ"], "Isparta": ["Merkez", "Eğirdir", "Yalvaç"], "Mersin": ["Yenişehir", "Mezitli", "Toroslar", "Akdeniz", "Tarsus", "Silifke", "Anamur"], "İstanbul": ["Beşiktaş", "Kadıköy", "Şişli", "Üsküdar", "Fatih", "Bakırköy", "Ataşehir", "Beylikdüzü", "Sarıyer", "Başakşehir", "Esenyurt"], "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli", "Gaziemir", "Menemen", "Torbalı", "Aliağa", "Çeşme"], "Kars": ["Merkez", "Sarıkamış"], "Kastamonu": ["Merkez", "Tosya", "İnebolu"], "Kayseri": ["Melikgazi", "Kocasinan", "Talas", "Develi"], "Kırklareli": ["Merkez", "Lüleburgaz", "Babaeski"], "Kırşehir": ["Merkez", "Kaman"], "Kocaeli": ["İzmit", "Gebze", "Gölcük", "Körfez", "Derince", "Kartepe"], "Konya": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir", "Beyşehir"], "Kütahya": ["Merkez", "Tavşanlı", "Gediz"], "Malatya": ["Yeşilyurt", "Battalgazi", "Doğanşehir"], "Manisa": ["Yunusemre", "Şehzadeler", "Akhisar", "Turgutlu", "Salihli", "Soma"], "Kahramanmaraş": ["Onikişubat", "Dulkadiroğlu", "Elbistan", "Afşin"], "Mardin": ["Artuklu", "Kızıltepe", "Midyat", "Nusaybin"], "Muğla": ["Menteşe", "Bodrum", "Fethiye", "Marmaris", "Milas", "Dalaman"], "Muş": ["Merkez", "Bulanık"], "Nevşehir": ["Merkez", "Ürgüp", "Avanos"], "Niğde": ["Merkez", "Bor"], "Ordu": ["Altınordu", "Ünye", "Fatsa"], "Rize": ["Merkez", "Ardeşen", "Çayeli"], "Sakarya": ["Adapazarı", "Serdivan", "Erenler", "Hendek", "Akyazı"], "Samsun": ["Atakum", "İlkadım", "Canik", "Bafra", "Çarşamba"], "Siirt": ["Merkez", "Kurtalan"], "Sinop": ["Merkez", "Boyabat"], "Sivas": ["Merkez", "Şarkışla", "Yıldızeli"], "Tekirdağ": ["Süleymanpaşa", "Çorlu", "Çerkezköy", "Kapaklı"], "Tokat": ["Merkez", "Erbaa", "Turhal", "Niksar"], "Trabzon": ["Ortahisar", "Akçaabat", "Araklı", "Of"], "Tunceli": ["Merkez"], "Şanlıurfa": ["Haliliye", "Eyyübiye", "Karaköprü", "Siverek", "Viranşehir", "Suruç"], "Uşak": ["Merkez", "Banaz"], "Van": ["İpekyolu", "Tuşba", "Edremit", "Erciş"], "Yozgat": ["Merkez", "Sorgun"], "Zonguldak": ["Merkez", "Ereğli", "Çaycuma"], "Aksaray": ["Merkez"], "Bayburt": ["Merkez"], "Karaman": ["Merkez"], "Kırıkkale": ["Merkez", "Yahşihan"], "Batman": ["Merkez", "Kozluk"], "Şırnak": ["Merkez", "Cizre", "Silopi"], "Bartın": ["Merkez"], "Ardahan": ["Merkez"], "Iğdır": ["Merkez"], "Yalova": ["Merkez", "Çınarcık"], "Karabük": ["Merkez", "Safranbolu"], "Kilis": ["Merkez"], "Osmaniye": ["Merkez", "Kadirli"], "Düzce": ["Merkez", "Akçakoca"]
+            "Adana": ["Seyhan", "Çukurova", "Sarıçam", "Yüreğir"], "Adıyaman": ["Merkez"], "Afyonkarahisar": ["Merkez"], "Ağrı": ["Merkez"], "Amasya": ["Merkez"], "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan"], "Antalya": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya"], "Artvin": ["Merkez"], "Aydın": ["Efeler", "Nazilli", "Kuşadası"], "Balıkesir": ["Karesi", "Altıeylül", "Bandırma"], "Bilecik": ["Merkez"], "Bingöl": ["Merkez"], "Bitlis": ["Merkez"], "Bolu": ["Merkez"], "Burdur": ["Merkez"], "Bursa": ["Nilüfer", "Osmangazi", "Yıldırım", "İnegöl"], "Çanakkale": ["Merkez"], "Çankırı": ["Merkez"], "Çorum": ["Merkez"], "Denizli": ["Pamukkale", "Merkezefendi"], "Diyarbakır": ["Kayapınar", "Bağlar"], "Edirne": ["Merkez"], "Elazığ": ["Merkez"], "Erzincan": ["Merkez"], "Erzurum": ["Yakutiye"], "Eskişehir": ["Odunpazarı", "Tepebaşı"], "Gaziantep": ["Şahinbey", "Şehitkamil"], "Giresun": ["Merkez"], "Gümüşhane": ["Merkez"], "Hakkari": ["Merkez"], "Hatay": ["Antakya", "İskenderun"], "Isparta": ["Merkez"], "Mersin": ["Yenişehir", "Mezitli", "Tarsus"], "İstanbul": ["Beşiktaş", "Kadıköy", "Şişli", "Üsküdar", "Bakırköy", "Ataşehir", "Sarıyer"], "İzmir": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli"], "Kars": ["Merkez"], "Kastamonu": ["Merkez"], "Kayseri": ["Melikgazi", "Kocasinan"], "Kırklareli": ["Merkez"], "Kırşehir": ["Merkez"], "Kocaeli": ["İzmit", "Gebze"], "Konya": ["Selçuklu", "Meram"], "Kütahya": ["Merkez"], "Malatya": ["Yeşilyurt"], "Manisa": ["Yunusemre", "Şehzadeler"], "Kahramanmaraş": ["Onikişubat"], "Mardin": ["Artuklu"], "Muğla": ["Bodrum", "Fethiye", "Marmaris"], "Muş": ["Merkez"], "Nevşehir": ["Merkez"], "Niğde": ["Merkez"], "Ordu": ["Altınordu"], "Rize": ["Merkez"], "Sakarya": ["Adapazarı", "Serdivan"], "Samsun": ["Atakum", "İlkadım"], "Siirt": ["Merkez"], "Sinop": ["Merkez"], "Sivas": ["Merkez"], "Tekirdağ": ["Süleymanpaşa", "Çorlu"], "Tokat": ["Merkez"], "Trabzon": ["Ortahisar"], "Tunceli": ["Merkez"], "Şanlıurfa": ["Haliliye", "Eyyübiye"], "Uşak": ["Merkez"], "Van": ["İpekyolu"], "Yozgat": ["Merkez"], "Zonguldak": ["Merkez"], "Aksaray": ["Merkez"], "Bayburt": ["Merkez"], "Karaman": ["Merkez"], "Kırıkkale": ["Merkez"], "Batman": ["Merkez"], "Şırnak": ["Merkez"], "Bartın": ["Merkez"], "Ardahan": ["Merkez"], "Iğdır": ["Merkez"], "Yalova": ["Merkez"], "Karabük": ["Merkez"], "Kilis": ["Merkez"], "Osmaniye": ["Merkez"], "Düzce": ["Merkez"]
         };
 
         const App = () => {
@@ -98,25 +121,19 @@
             const [notification, setNotification] = useState(null);
             const [deletingRecord, setDeletingRecord] = useState(null);
 
-            const [newApp, setNewApp] = useState({ centerName: '', city: 'İstanbul', district: 'Beşiktaş', date: '', time: '', salesRep: salesReps[0] });
-            const [newLead, setNewLead] = useState({ salonName: '', phone: '', city: 'İstanbul', salesRep: salesReps[0] });
-
             useEffect(() => {
                 auth.signInAnonymously().catch(err => console.error("Giriş hatası:", err));
-
                 const unsubSaha = db.collection('appointments').onSnapshot(snapshot => {
                     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'saha' }));
                     data.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time));
                     setAppointments(data);
                     setLoading(false);
                 });
-
                 const unsubLeads = db.collection('leads').onSnapshot(snapshot => {
                     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'lead' }));
                     data.sort((a, b) => (b.createdAt?.toDate() || 0) - (a.createdAt?.toDate() || 0));
                     setLeads(data);
                 });
-
                 return () => { unsubSaha(); unsubLeads(); };
             }, []);
 
@@ -130,22 +147,41 @@
 
             const addAppointment = async (e) => {
                 e.preventDefault();
+                const centerName = e.target.centerName.value;
+                const city = e.target.city.value;
+                const district = e.target.district.value;
+                const date = e.target.date.value;
+                const time = e.target.time.value;
+                const salesRep = e.target.salesRep.value;
                 try {
-                    await db.collection('appointments').add({ ...newApp, status: 'Beklemede', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    await db.collection('appointments').add({ centerName, city, district, date, time, salesRep, status: 'Beklemede', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     setShowForm(false);
-                    setNewApp({ centerName: '', city: 'İstanbul', district: 'Beşiktaş', date: '', time: '', salesRep: salesReps[0] });
                     showNotify("Ziyaret kaydedildi.");
                 } catch (e) { showNotify("Hata!"); }
             };
 
             const addLead = async (e) => {
                 e.preventDefault();
+                const salonName = e.target.salonName.value;
+                const phone = e.target.phone.value;
+                const city = e.target.city.value;
+                const salesRep = e.target.salesRep.value;
                 try {
-                    await db.collection('leads').add({ ...newLead, status: 'Aranacak', note: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    await db.collection('leads').add({ salonName, phone, city, salesRep, status: 'Aranacak', note: '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     setShowLeadForm(false);
-                    setNewLead({ salonName: '', phone: '', city: 'İstanbul', salesRep: salesReps[0] });
-                    showNotify("Yeni talep oluşturuldu.");
-                } catch (e) { showNotify("Kayıt hatası!"); }
+                    showNotify("Talep oluşturuldu.");
+                } catch (e) { showNotify("Hata!"); }
+            };
+
+            const updateStatus = async (id, status, type, note = '') => {
+                const collectionName = type === 'saha' ? 'appointments' : 'leads';
+                const updateData = { status };
+                if (note) updateData.note = note;
+                try { 
+                    await db.collection(collectionName).doc(id).update(updateData); 
+                    showNotify(`Güncellendi`); 
+                    if (showOutcomeModal) setShowOutcomeModal(null);
+                } catch (e) { showNotify("Hata!"); }
             };
 
             const deleteAnyRecord = async () => {
@@ -154,138 +190,138 @@
                 catch (e) { showNotify("Hata!"); }
             };
 
-            const updateStatus = async (id, status, type, note = '') => {
-                const collectionName = type === 'saha' ? 'appointments' : 'leads';
-                const updateData = { status };
-                if (note) updateData.note = note;
-                
-                try { 
-                    await db.collection(collectionName).doc(id).update(updateData); 
-                    showNotify(`Sonuç kaydedildi: ${note || status}`); 
-                    if (showOutcomeModal) setShowOutcomeModal(null);
-                } catch (e) { showNotify("Hata!"); }
-            };
+            const filteredSaha = appointments.filter(a => (filterCity === 'Hepsi' || a.city === filterCity) && (a.centerName || "").toLowerCase().includes(searchQuery.toLowerCase()));
+            const filteredLeads = leads.filter(l => (filterCity === 'Hepsi' || l.city === filterCity) && ((l.salonName || "").toLowerCase().includes(searchQuery.toLowerCase()) || (l.salesRep || "").toLowerCase().includes(searchQuery.toLowerCase())));
 
-            const filteredSaha = appointments.filter(a => {
-                const matchesCity = filterCity === 'Hepsi' || a.city === filterCity;
-                const matchesSearch = (a.centerName || "").toLowerCase().includes(searchQuery.toLowerCase());
-                return matchesCity && matchesSearch;
-            });
-
-            const filteredLeads = leads.filter(l => {
-                const matchesCity = filterCity === 'Hepsi' || l.city === filterCity;
-                const matchesSearch = (l.salonName || "").toLowerCase().includes(searchQuery.toLowerCase()) || (l.salesRep || "").toLowerCase().includes(searchQuery.toLowerCase());
-                return matchesCity && matchesSearch;
-            });
-
-            if (loading) return <div className="h-screen flex items-center justify-center font-black text-slate-300 uppercase tracking-widest text-xs">Yükleniyor...</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-xs">Cosgen Medical...</div>;
 
             return (
-                <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto selection:bg-slate-200">
+                <div className="min-h-screen pb-12">
                     {/* Header */}
-                    <nav className="flex justify-between items-center mb-10 bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-                        <CosgenLogo />
-                        <button onClick={() => isAdmin ? (activeTab === 'saha' ? setShowForm(true) : setShowLeadForm(true)) : setShowPassModal(true)} 
-                                className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-lg">
-                            {isAdmin ? `+ ${activeTab === 'saha' ? 'Yeni Saha' : 'Yeni Talep'}` : "Yönetici Girişi"}
-                        </button>
+                    <nav className="glass-header sticky top-0 z-40 px-4 py-4 md:px-8 shadow-sm">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <CosgenLogo />
+                            <button onClick={() => isAdmin ? (activeTab === 'saha' ? setShowForm(true) : setShowLeadForm(true)) : setShowPassModal(true)} 
+                                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-wider active:scale-95 transition-all shadow-lg flex items-center gap-2">
+                                {isAdmin ? <><Icons.Plus size={16}/> {activeTab === 'saha' ? 'Yeni Saha' : 'Yeni Talep'}</> : <><Icons.Lock size={14}/> Yönetici</>}
+                            </button>
+                        </div>
                     </nav>
 
-                    {/* Tabs */}
-                    <div className="flex border-b border-slate-200 mb-8 gap-8 px-4 overflow-x-auto no-scrollbar whitespace-nowrap">
-                        <button onClick={() => setActiveTab('saha')} className={`pb-4 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all ${activeTab === 'saha' ? 'tab-active' : 'text-slate-400'}`}>
-                            Saha Ziyaretleri ({appointments.length})
-                        </button>
-                        <button onClick={() => setActiveTab('sosyal')} className={`pb-4 font-black uppercase text-[10px] md:text-xs tracking-widest transition-all ${activeTab === 'sosyal' ? 'tab-active' : 'text-slate-400'}`}>
-                            Sosyal Medya Talepleri ({leads.length})
-                        </button>
-                    </div>
-
-                    {/* Filters */}
-                    <div className="flex flex-col md:flex-row gap-4 mb-8">
-                        <div className="relative flex-1">
-                            <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                            <input type="text" placeholder="Arama yap..." className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl font-bold outline-none" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+                        {/* Tabs Navigation */}
+                        <div className="flex bg-slate-200/50 p-1 rounded-2xl mb-8 w-full md:w-fit">
+                            <button onClick={() => setActiveTab('saha')} className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-extrabold uppercase text-[10px] tracking-widest transition-all ${activeTab === 'saha' ? 'tab-btn-active' : 'text-slate-500'}`}>
+                                Saha ({appointments.length})
+                            </button>
+                            <button onClick={() => setActiveTab('sosyal')} className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-extrabold uppercase text-[10px] tracking-widest transition-all ${activeTab === 'sosyal' ? 'tab-btn-active' : 'text-slate-500'}`}>
+                                Sosyal ({leads.length})
+                            </button>
                         </div>
-                        <select className="p-4 bg-white border border-slate-100 rounded-2xl font-black text-xs uppercase cursor-pointer" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
-                            <option value="Hepsi">Tüm Şehirler</option>
-                            {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
 
-                    {/* Saha Listesi */}
-                    {activeTab === 'saha' && (
+                        {/* Search & Filter Bar */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div className="md:col-span-2 relative">
+                                <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input type="text" placeholder="Merkez, salon veya isim ara..." className="w-full pl-12 pr-4 py-4 bg-white card-shadow rounded-2xl font-semibold outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                            </div>
+                            <div className="relative">
+                                <select className="w-full p-4 bg-white card-shadow rounded-2xl font-bold text-xs uppercase cursor-pointer appearance-none outline-none border-none pr-10" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
+                                    <option value="Hepsi">Tüm Şehirler</option>
+                                    {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Content Area */}
                         <div className="space-y-4">
-                            {filteredSaha.map(app => (
-                                <div key={app.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-50 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row justify-between lg:items-center gap-6 animate-fade-in">
+                            {/* Saha Listesi */}
+                            {activeTab === 'saha' && filteredSaha.map(app => (
+                                <div key={app.id} className="bg-white card-shadow rounded-[1.5rem] border-l-[6px] border-slate-900 overflow-hidden animate-fade-in flex flex-col md:flex-row justify-between md:items-center p-6 gap-6">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className={`text-[9px] font-black uppercase px-2 py-1 rounded border ${app.status === 'Beklemede' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{app.status}</span>
-                                            {isAdmin && <button onClick={() => setDeletingRecord(app)} className="text-slate-200 hover:text-rose-500 transition-colors"><Icons.Trash2 size={16}/></button>}
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border ${app.status === 'Beklemede' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>{app.status}</span>
+                                            {isAdmin && <button onClick={() => setDeletingRecord(app)} className="text-slate-300 hover:text-rose-500 transition-colors"><Icons.Trash2 size={16}/></button>}
                                         </div>
-                                        <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{app.centerName}</h4>
-                                        <div className="text-slate-400 font-bold text-[11px] uppercase tracking-wide">{app.district} / {app.city}</div>
+                                        <h4 className="text-xl font-extrabold text-slate-900 leading-tight mb-2 uppercase">{app.centerName}</h4>
+                                        <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px] uppercase tracking-wide">
+                                            <Icons.MapPin size={14}/> {app.district} / {app.city}
+                                        </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-8 items-center lg:border-l lg:pl-10 lg:border-slate-50">
-                                        <div><p className="text-[9px] font-black text-slate-300 uppercase mb-1">Vakit</p><div className="text-slate-700 font-bold text-sm">{app.date} | {app.time}</div></div>
-                                        <div><p className="text-[9px] font-black text-slate-300 uppercase mb-1">Temsilci</p><div className="text-slate-700 font-bold text-sm">{app.salesRep}</div></div>
-                                        <div>
+                                    <div className="flex flex-wrap items-center gap-6 md:border-l md:pl-8 border-slate-100">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-slate-50 p-2 rounded-xl text-slate-400"><Icons.Calendar size={18}/></div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Vakit</p>
+                                                <span className="text-sm font-bold text-slate-700">{app.date} | {app.time}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-slate-50 p-2 rounded-xl text-slate-400"><Icons.User size={18}/></div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Temsilci</p>
+                                                <span className="text-sm font-bold text-slate-700">{app.salesRep}</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full md:w-auto">
                                             {app.status === 'Beklemede' ? 
-                                                <button onClick={() => updateStatus(app.id, 'Tamamlandı', 'saha')} className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Tamamla</button> : 
-                                                <div className="text-emerald-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2"><Icons.CheckCircle size={18}/> Bitti</div>
+                                                <button onClick={() => updateStatus(app.id, 'Tamamlandı', 'saha')} className="w-full bg-slate-900 text-white px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-slate-100 hover:shadow-xl transition-all">Tamamla</button> : 
+                                                <div className="flex items-center justify-center gap-2 text-emerald-600 font-black text-[11px] uppercase py-3 bg-emerald-50/50 rounded-xl px-4"><Icons.CheckCircle size={18}/> İşlem Bitti</div>
                                             }
                                         </div>
                                     </div>
                                 </div>
                             ))}
-                        </div>
-                    )}
 
-                    {/* Sosyal Medya Listesi */}
-                    {activeTab === 'sosyal' && (
-                        <div className="space-y-4">
-                            {filteredLeads.map(lead => (
-                                <div key={lead.id} className="bg-white p-6 md:p-8 rounded-[2.5rem] border-2 border-indigo-50 shadow-sm hover:shadow-md transition-all flex flex-col lg:flex-row justify-between lg:items-center gap-6 animate-fade-in relative overflow-hidden group">
+                            {/* Sosyal Medya Listesi */}
+                            {activeTab === 'sosyal' && filteredLeads.map(lead => (
+                                <div key={lead.id} className="bg-white card-shadow rounded-[1.5rem] border-l-[6px] border-indigo-600 overflow-hidden animate-fade-in flex flex-col md:flex-row justify-between md:items-center p-6 gap-6">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className={`text-[9px] font-black uppercase px-2 py-1 rounded border ${lead.status === 'Aranacak' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>{lead.status}</span>
-                                            <div className="p-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded text-white"><Icons.Instagram size={10}/></div>
-                                            {isAdmin && <button onClick={() => setDeletingRecord(lead)} className="text-slate-200 hover:text-rose-500 transition-colors ml-2"><Icons.Trash2 size={16}/></button>}
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-lg border ${lead.status === 'Aranacak' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>{lead.status}</span>
+                                            <div className="bg-gradient-to-tr from-purple-500 to-pink-500 p-1.5 rounded-lg text-white"><Icons.Instagram size={12}/></div>
+                                            {isAdmin && <button onClick={() => setDeletingRecord(lead)} className="text-slate-300 hover:text-rose-500 transition-colors"><Icons.Trash2 size={16}/></button>}
                                         </div>
-                                        <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">{lead.salonName}</h4>
-                                        <div className="flex flex-wrap items-center gap-4 mt-2">
-                                            <div className="text-slate-400 font-bold text-[11px] uppercase flex items-center gap-1"><Icons.MapPin size={12}/> {lead.city}</div>
-                                            <a href={`tel:${lead.phone}`} className="text-indigo-600 font-black text-[11px] uppercase flex items-center gap-1 hover:underline"><Icons.Phone size={12}/> {lead.phone}</a>
+                                        <h4 className="text-xl font-extrabold text-slate-900 leading-tight mb-2 uppercase">{lead.salonName}</h4>
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            <div className="text-slate-500 font-bold text-[11px] uppercase flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md"><Icons.MapPin size={12}/> {lead.city}</div>
+                                            <div className="text-indigo-600 font-bold text-[11px] uppercase flex items-center gap-1.5 bg-indigo-50 px-2 py-1 rounded-md tracking-wider"><Icons.Phone size={12}/> {lead.phone}</div>
                                         </div>
                                         {lead.note && (
-                                            <div className={`mt-4 p-3 rounded-xl border flex items-start gap-2 ${
-                                                lead.note === 'Randevu Alındı' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' :
-                                                lead.note === 'Reddetti' ? 'bg-rose-50 border-rose-100 text-rose-700' :
-                                                lead.note === 'Tekrar Aranacak' ? 'bg-amber-50 border-amber-100 text-amber-700' :
-                                                'bg-slate-50 border-slate-100 text-slate-600'
+                                            <div className={`mt-4 p-4 rounded-2xl border-2 flex items-start gap-3 ${
+                                                lead.note === 'Randevu Alındı' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
+                                                lead.note === 'Reddetti' ? 'bg-rose-50 border-rose-100 text-rose-800' :
+                                                lead.note === 'Tekrar Aranacak' ? 'bg-amber-50 border-amber-100 text-amber-800' :
+                                                'bg-slate-50 border-slate-100 text-slate-700'
                                             }`}>
-                                                <Icons.MessageSquare size={14} className="mt-0.5 opacity-60"/>
-                                                <p className="text-[11px] font-black uppercase tracking-tight">{lead.note}</p>
+                                                <Icons.MessageSquare size={16} className="mt-0.5 opacity-60"/>
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Görüşme Notu</p>
+                                                    <p className="text-xs font-bold leading-tight">{lead.note}</p>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="flex flex-wrap gap-4 items-center lg:border-l lg:pl-10 lg:border-slate-50">
+                                    <div className="flex flex-wrap items-center gap-4 md:border-l md:pl-8 border-slate-100">
                                         <div className="min-w-[120px]">
-                                            <p className="text-[9px] font-black text-slate-300 uppercase mb-1">Sorumlu Satışçı</p>
-                                            <div className="text-indigo-600 font-bold text-sm">{lead.salesRep}</div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Sorumlu Satışçı</p>
+                                            <div className="text-indigo-700 font-bold text-sm bg-indigo-50 inline-block px-3 py-1 rounded-lg">{lead.salesRep}</div>
                                         </div>
                                         <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                                             {lead.status === 'Aranacak' ? (
                                                 <>
-                                                    <a href={`tel:${lead.phone}`} className="flex items-center justify-center gap-2 bg-emerald-500 text-white px-6 py-3 rounded-xl shadow-lg hover:bg-emerald-600 transition-all font-black text-[10px] uppercase tracking-widest">
-                                                        <Icons.Phone size={16}/> HEMEN ARA
+                                                    <a href={`tel:${lead.phone}`} className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg shadow-emerald-100 active:scale-95 transition-all">
+                                                        <Icons.Phone size={18}/> HEMEN ARA
                                                     </a>
-                                                    <button onClick={() => setShowOutcomeModal(lead)} className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                                                    <button onClick={() => setShowOutcomeModal(lead)} className="bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-100 active:scale-95 transition-all">
                                                         Sonuç Gir
                                                     </button>
                                                 </>
                                             ) : (
-                                                <button onClick={() => setShowOutcomeModal(lead)} className="text-slate-400 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all">
+                                                <button onClick={() => setShowOutcomeModal(lead)} className="bg-white text-slate-600 border-2 border-slate-100 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-50 transition-all">
                                                     <Icons.MessageSquare size={16}/> Notu Güncelle
                                                 </button>
                                             )}
@@ -294,33 +330,36 @@
                                 </div>
                             ))}
                         </div>
-                    )}
 
-                    {/* Outcome Modal */}
+                        {/* Boş Liste Durumu */}
+                        {((activeTab === 'saha' && filteredSaha.length === 0) || (activeTab === 'sosyal' && filteredLeads.length === 0)) && (
+                            <div className="py-24 text-center bg-white rounded-[3rem] border-4 border-dashed border-slate-200 card-shadow">
+                                <Icons.Search size={50} className="mx-auto text-slate-200 mb-4 animate-bounce"/>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Aradığınız kriterde kayıt yok</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Outcome Modal (Hızlı Seçim) */}
                     {showOutcomeModal && (
-                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[110]">
-                            <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm text-center shadow-2xl animate-fade-in">
-                                <div className="p-2 bg-indigo-50 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600"><Icons.MessageSquare size={24}/></div>
-                                <h3 className="text-xl font-black mb-1 uppercase tracking-tighter">Görüşme Sonucu</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">{showOutcomeModal.salonName}</p>
-                                
+                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-4 z-[110] animate-fade-in">
+                            <div className="bg-white p-8 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
+                                <div className="p-3 bg-indigo-50 text-indigo-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"><Icons.MessageSquare size={28}/></div>
+                                <h3 className="text-2xl font-black mb-1 uppercase tracking-tighter text-slate-900">Sonuç Nedir?</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8 leading-tight">{showOutcomeModal.salonName}</p>
                                 <div className="space-y-3">
                                     {[
-                                        { label: "Randevu Alındı", color: "bg-emerald-500" },
-                                        { label: "Tekrar Aranacak", color: "bg-amber-500" },
-                                        { label: "Reddetti", color: "bg-rose-500" },
-                                        { label: "Ulaşılamadı", color: "bg-slate-400" }
+                                        { label: "Randevu Alındı", color: "bg-emerald-500", text: "text-emerald-700" },
+                                        { label: "Tekrar Aranacak", color: "bg-amber-500", text: "text-amber-700" },
+                                        { label: "Reddetti", color: "bg-rose-500", text: "text-rose-700" },
+                                        { label: "Ulaşılamadı", color: "bg-slate-400", text: "text-slate-600" }
                                     ].map((opt, idx) => (
-                                        <button 
-                                            key={idx}
-                                            onClick={() => updateStatus(showOutcomeModal.id, 'Arandı', 'lead', opt.label)}
-                                            className="w-full p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center gap-3 transition-all group"
-                                        >
-                                            <div className={`w-2.5 h-2.5 rounded-full ${opt.color}`}></div>
-                                            <span className="font-bold text-xs uppercase text-slate-700 tracking-tight group-hover:text-slate-900">{opt.label}</span>
+                                        <button key={idx} onClick={() => updateStatus(showOutcomeModal.id, 'Arandı', 'lead', opt.label)} className="w-full p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center gap-4 transition-all group border-2 border-transparent hover:border-slate-200">
+                                            <div className={`w-3 h-3 rounded-full ${opt.color} shadow-sm group-hover:scale-125 transition-transform`}></div>
+                                            <span className="font-extrabold text-sm uppercase text-slate-700 tracking-tight">{opt.label}</span>
                                         </button>
                                     ))}
-                                    <button onClick={() => setShowOutcomeModal(null)} className="w-full py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Vazgeç</button>
+                                    <button onClick={() => setShowOutcomeModal(null)} className="w-full py-4 text-xs font-black text-slate-400 uppercase tracking-widest mt-4">Vazgeç</button>
                                 </div>
                             </div>
                         </div>
@@ -328,89 +367,111 @@
 
                     {/* Admin Pass Modal */}
                     {showPassModal && (
-                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-                            <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
-                                <Icons.Lock size={40} className="mx-auto mb-6 text-slate-900" />
-                                <h3 className="text-2xl font-black mb-6 uppercase tracking-tighter">Yönetici Girişi</h3>
+                        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4 z-50">
+                            <div className="bg-white p-10 rounded-[3.5rem] w-full max-w-sm text-center shadow-2xl">
+                                <div className="bg-slate-900 text-white w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200"><Icons.Lock size={32} /></div>
+                                <h3 className="text-2xl font-black mb-1 uppercase tracking-tighter text-slate-900">Sistem Kilidi</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-8">Devam etmek için şifreyi giriniz</p>
                                 <form onSubmit={handlePasswordSubmit}>
-                                    <input type="password" autoFocus className="w-full p-5 bg-slate-50 rounded-[1.5rem] mb-6 text-center font-black text-2xl outline-none" value={passInput} onChange={e => setPassInput(e.target.value)} placeholder="••••" />
-                                    <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Giriş</button>
+                                    <input type="password" autoFocus className="w-full p-5 bg-slate-50 rounded-[1.5rem] mb-6 text-center font-black text-3xl outline-none border-4 border-transparent focus:border-indigo-100 transition-all text-slate-900" value={passInput} onChange={e => setPassInput(e.target.value)} placeholder="••••" />
+                                    <button className="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200 active:scale-95 transition-all">Kilidi Aç</button>
                                 </form>
+                                <button onClick={() => setShowPassModal(false)} className="mt-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Geri Dön</button>
                             </div>
                         </div>
                     )}
 
-                    {/* Saha Formu */}
-                    {showForm && (activeTab === 'saha') && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto no-scrollbar">
-                                <div className="p-8 bg-slate-50 border-b flex justify-between items-center sticky top-0 z-10">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter">Saha Ziyareti</h2>
-                                    <button onClick={() => setShowForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border text-slate-400 hover:text-slate-900"><Icons.X size={20} /></button>
+                    {/* Form Modals (Saha ve Lead) */}
+                    {(showForm || showLeadForm) && (
+                        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-lg flex items-center justify-center p-4 z-[100]">
+                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto no-scrollbar animate-fade-in border border-white/20">
+                                <div className={`p-8 ${activeTab === 'saha' ? 'bg-slate-900' : 'bg-indigo-600'} text-white flex justify-between items-center sticky top-0 z-10`}>
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                        {activeTab === 'saha' ? <><Icons.MapPin size={28}/> Yeni Saha Kaydı</> : <><Icons.Instagram size={28}/> Yeni Sosyal Talep</>}
+                                    </h2>
+                                    <button onClick={() => activeTab === 'saha' ? setShowForm(false) : setShowLeadForm(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/20 hover:bg-white/40 transition-all"><Icons.X size={24} /></button>
                                 </div>
-                                <form onSubmit={addAppointment} className="p-10 space-y-6">
-                                    <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Salon/Merkez Adı" value={newApp.centerName} onChange={e => setNewApp({...newApp, centerName: e.target.value})} />
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.city} onChange={e => setNewApp({...newApp, city: e.target.value, district: CITY_DISTRICTS[e.target.value][0]})}>
-                                            {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.district} onChange={e => setNewApp({...newApp, district: e.target.value})}>
-                                            {(CITY_DISTRICTS[newApp.city] || []).map(d => <option key={d} value={d}>{d}</option>)}
-                                        </select>
+                                <form onSubmit={activeTab === 'saha' ? addAppointment : addLead} className="p-8 md:p-10 space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">{activeTab === 'saha' ? 'Merkez / Salon Adı' : 'Müşteri Salon Adı'}</label>
+                                        <input name={activeTab === 'saha' ? "centerName" : "salonName"} required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none transition-all" placeholder="Örn: Ege Güzellik Salonu" />
                                     </div>
-                                    <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.salesRep} onChange={e => setNewApp({...newApp, salesRep: e.target.value})}>
-                                        {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
+                                    {activeTab === 'sosyal' && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">İletişim Numarası</label>
+                                            <input name="phone" type="tel" required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none transition-all" placeholder="05XX XXX XX XX" />
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-2 gap-6">
-                                        <input type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.date} onChange={e => setNewApp({...newApp, date: e.target.value})} />
-                                        <input type="time" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newApp.time} onChange={e => setNewApp({...newApp, time: e.target.value})} />
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Şehir</label>
+                                            <select name="city" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
+                                                {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                            </select>
+                                        </div>
+                                        {activeTab === 'saha' ? (
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">İlçe</label>
+                                                <select name="district" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
+                                                    {CITY_DISTRICTS["İstanbul"].map(d => <option key={d} value={d}>{d}</option>)}
+                                                </select>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Satış Temsilcisi</label>
+                                                <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
+                                                    {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
+                                                </select>
+                                            </div>
+                                        )}
                                     </div>
-                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Kaydet</button>
+                                    {activeTab === 'saha' && (
+                                        <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ziyaret Edecek Temsilci</label>
+                                            <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
+                                                {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ziyaret Tarihi</label>
+                                                <input name="date" type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Saat</label>
+                                                <input name="time" type="time" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" />
+                                            </div>
+                                        </div>
+                                        </>
+                                    )}
+                                    <button type="submit" className={`w-full ${activeTab === 'saha' ? 'bg-slate-900' : 'bg-indigo-600'} text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] mt-4`}>
+                                        Sisteme Kaydet
+                                    </button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* Sosyal Medya Formu */}
-                    {showLeadForm && (activeTab === 'sosyal') && (
-                        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto no-scrollbar animate-fade-in">
-                                <div className="p-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white flex justify-between items-center sticky top-0 z-10">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter">Yeni Sosyal Talep</h2>
-                                    <button onClick={() => setShowLeadForm(false)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/40"><Icons.X size={20} /></button>
-                                </div>
-                                <form onSubmit={addLead} className="p-10 space-y-6">
-                                    <input required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Güzellik Salonu İsmi" value={newLead.salonName} onChange={e => setNewLead({...newLead, salonName: e.target.value})} />
-                                    <input required type="tel" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" placeholder="Telefon Numarası" value={newLead.phone} onChange={e => setNewLead({...newLead, phone: e.target.value})} />
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.city} onChange={e => setNewLead({...newLead, city: e.target.value})}>
-                                            {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                        <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" value={newLead.salesRep} onChange={e => setNewLead({...newLead, salesRep: e.target.value})}>
-                                            {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
-                                        </select>
-                                    </div>
-                                    <button type="submit" className="w-full bg-slate-900 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl">Talebi Ekle</button>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
+                    {/* Silme Onayı */}
                     {deletingRecord && (
-                        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 z-[70]">
+                        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4 z-[200] animate-fade-in">
                             <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
-                                <h3 className="text-2xl font-black mb-8 uppercase tracking-tighter">Kaydı Sil?</h3>
+                                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6"><Icons.Trash2 size={32}/></div>
+                                <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter text-slate-900">Emin misiniz?</h3>
+                                <p className="text-slate-500 font-bold text-[11px] mb-8 leading-relaxed uppercase tracking-wider">Bu kayıt kalıcı olarak silinecektir.</p>
                                 <div className="flex gap-4">
-                                    <button onClick={() => setDeletingRecord(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest">Hayır</button>
-                                    <button onClick={deleteAnyRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">Evet, Sil</button>
+                                    <button onClick={() => setDeletingRecord(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest py-4 border-2 border-slate-100 rounded-2xl">Vazgeç</button>
+                                    <button onClick={deleteAnyRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-rose-200">Evet, Sil</button>
                                 </div>
                             </div>
                         </div>
                     )}
 
+                    {/* Notification */}
                     {notification && (
-                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full text-[11px] font-black uppercase tracking-widest z-[200] shadow-2xl flex items-center gap-3 animate-fade-in border border-white/10">
-                            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest z-[250] shadow-2xl flex items-center gap-4 animate-fade-in border border-white/10">
+                            <div className="w-2.5 h-2.5 bg-indigo-400 rounded-full animate-pulse shadow-glow"></div>
                             {notification}
                         </div>
                     )}
@@ -423,3 +484,4 @@
     </script>
 </body>
 </html>
+
