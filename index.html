@@ -153,7 +153,7 @@
             "Elazığ": ["Merkez", "Kovancılar", "Karakoçan", "Palu", "Baskil", "Arıcak", "Maden", "Sivrice", "Alacakaya", "Kebun", "Ağın"],
             "Erzincan": ["Merkez", "Tercan", "Üzümlü", "Çayırlı", "İliç", "Kemah", "Kemaliye", "Refahiye", "Otlukbeli"],
             "Erzurum": ["Yakutiye", "Palandöken", "Aziziye", "Oltu", "Horasan", "Pasinler", "Aşkale", "Tekman", "Karayazı", "Hınıs", "İspir", "Tortum", "Karaçoban", "Uzundere", "Şenkaya", "Narman", "Çat", "Köprüköy", "Pazaryolu", "Olur"],
-            "Eskişehir": ["Odunpazarı", "Tepebaşı", "Sivrihisar", "Çifteler", "Alpu", "Mihalıççık", "Seyitgazi", "Mahmudiye", "Beylikova", "İnönü", "Günyüzü", "Sarıcakaya", "Mihalgazi", "Han"],
+            "Eskişehir": ["Odunpazarı", "Tepebaşı", "Sivrihisar", "Çifteler", "Alpu", "Mihalıççık", "Seyitgazi", "Mahmudiye", "Beylikova", "İinönü", "Günyüzü", "Sarıcakaya", "Mihalgazi", "Han"],
             "Gaziantep": ["Şahinbey", "Şehitkamil", "Nizip", "İslahiye", "Nurdağı", "Araban", "Oğuzeli", "Yavuzeli", "Karkamış"],
             "Giresun": ["Merkez", "Bulancak", "Tirebolu", "Espiye", "Görele", "Şebinkarahisar", "Dereli", "Keşap", "Yağlıdere", "Alucra", "Piraziz", "Eynesil", "Çamoluk", "Çanakçı", "Güce", "Doğankent"],
             "Gümüşhane": ["Merkez", "Kelkit", "Şiran", "Kürtün", "Torul", "Köse"],
@@ -215,6 +215,8 @@
             const ADMIN_PASSWORD = "cosgen45"; 
             const salesReps = ['Işıl Engin', 'Hasret Gökot', 'Handan Sevgi', 'Ömür Kaplan', 'Gamze Kaç'];
 
+            const sortedProvNames = useMemo(() => Object.keys(CITY_DISTRICTS).sort((a,b) => a.localeCompare(b,'tr')), []);
+
             const [appointments, setAppointments] = useState([]);
             const [leads, setLeads] = useState([]);
             const [activeTab, setActiveTab] = useState('saha'); 
@@ -231,8 +233,8 @@
             const [notification, setNotification] = useState(null);
             const [deletingRecord, setDeletingRecord] = useState(null);
 
-            // Dinamik ilçe takibi için state
-            const [selectedSahaCity, setSelectedSahaCity] = useState("İstanbul");
+            // Şehre göre dinamik ilçe takibi için state (Başlangıçta listenin ilk şehri olan Adana atanır)
+            const [selectedSahaCity, setSelectedSahaCity] = useState(sortedProvNames[0]);
 
             useEffect(() => {
                 auth.signInAnonymously().catch(err => console.error("Giriş hatası:", err));
@@ -375,7 +377,7 @@
                             <div className="relative">
                                 <select className="w-full p-4 bg-white card-shadow rounded-2xl font-bold text-xs uppercase cursor-pointer appearance-none outline-none border-none pr-10" value={filterCity} onChange={e => setFilterCity(e.target.value)}>
                                     <option value="Hepsi">Tüm Şehirler</option>
-                                    {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                    {sortedProvNames.map(c => <option key={c} value={c}>{c}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -557,41 +559,48 @@
                         </div>
                     )}
 
-                    {/* Form Modals */}
+                    {/* Form Modals (Saha ve Lead) */}
                     {(showForm || showLeadForm) && (
                         <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-lg flex items-center justify-center p-4 z-[100]">
-                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto no-scrollbar animate-fade-in">
+                            <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto no-scrollbar animate-fade-in border border-white/20">
                                 <div className={`p-8 ${activeTab === 'saha' ? 'bg-slate-900' : 'bg-indigo-600'} text-white flex justify-between items-center sticky top-0 z-10`}>
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter">{activeTab === 'saha' ? 'Yeni Saha Kaydı' : 'Yeni Sosyal Talep'}</h2>
-                                    <button onClick={() => activeTab === 'saha' ? setShowForm(false) : setShowLeadForm(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/20 hover:bg-white/40"><Icons.X size={24} /></button>
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                        {activeTab === 'saha' ? <><Icons.MapPin size={28}/> Yeni Saha Kaydı</> : <><Icons.Instagram size={28}/> Yeni Sosyal Talep</>}
+                                    </h2>
+                                    <button onClick={() => activeTab === 'saha' ? setShowForm(false) : setShowLeadForm(false)} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/20 hover:bg-white/40 transition-all"><Icons.X size={24} /></button>
                                 </div>
                                 <form onSubmit={activeTab === 'saha' ? addAppointment : addLead} className="p-8 md:p-10 space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Güzellik Merkezi İsmi</label>
-                                        <input name={activeTab === 'saha' ? "centerName" : "salonName"} required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none" placeholder="Merkez / Salon Adı" />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">{activeTab === 'saha' ? 'Güzellik Merkezi İsmi' : 'Salon Adı'}</label>
+                                        <input name={activeTab === 'saha' ? "centerName" : "salonName"} required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none transition-all" placeholder="Merkez / Salon Adı" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Telefon Numarası</label>
-                                        <input name="phone" type="tel" required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none" placeholder="05XX XXX XX XX" />
+                                        <input name="phone" type="tel" required className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-indigo-500 rounded-2xl font-bold outline-none transition-all" placeholder="05XX XXX XX XX" />
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Şehir</label>
-                                            <select name="city" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none appearance-none" onChange={(e) => setSelectedSahaCity(e.target.value)}>
-                                                {Object.keys(CITY_DISTRICTS).sort((a,b)=>a.localeCompare(b,'tr')).map(c => <option key={c} value={c}>{c}</option>)}
+                                            <select 
+                                                name="city" 
+                                                value={selectedSahaCity}
+                                                className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none"
+                                                onChange={(e) => setSelectedSahaCity(e.target.value)}
+                                            >
+                                                {sortedProvNames.map(c => <option key={c} value={c}>{c}</option>)}
                                             </select>
                                         </div>
                                         {activeTab === 'saha' ? (
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">İlçe</label>
-                                                <select name="district" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none">
+                                                <select name="district" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
                                                     {(CITY_DISTRICTS[selectedSahaCity] || ["Merkez"]).map(d => <option key={d} value={d}>{d}</option>)}
                                                 </select>
                                             </div>
                                         ) : (
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Temsilci</label>
-                                                <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Satış Temsilcisi</label>
+                                                <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
                                                     {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
                                                 </select>
                                             </div>
@@ -600,14 +609,14 @@
                                     {activeTab === 'saha' && (
                                         <>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Gidecek Temsilci</label>
-                                            <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ziyaret Edecek Temsilci</label>
+                                            <select name="salesRep" className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none cursor-pointer appearance-none">
                                                 {salesReps.map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Tarih</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Ziyaret Tarihi</label>
                                                 <input name="date" type="date" required className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none" />
                                             </div>
                                             <div className="space-y-2">
@@ -617,20 +626,24 @@
                                         </div>
                                         </>
                                     )}
-                                    <button type="submit" className={`w-full ${activeTab === 'saha' ? 'bg-slate-900' : 'bg-indigo-600'} text-white py-6 rounded-3xl font-black uppercase shadow-xl mt-4`}>Kaydet</button>
+                                    <button type="submit" className={`w-full ${activeTab === 'saha' ? 'bg-slate-900' : 'bg-indigo-600'} text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] mt-4`}>
+                                        Sisteme Kaydet
+                                    </button>
                                 </form>
                             </div>
                         </div>
                     )}
 
-                    {/* Delete Confirmation */}
+                    {/* Silme Onayı */}
                     {deletingRecord && (
                         <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl flex items-center justify-center p-4 z-[200] animate-fade-in">
                             <div className="bg-white p-10 rounded-[3rem] w-full max-w-sm text-center shadow-2xl">
-                                <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter text-slate-900">Silinsin mi?</h3>
-                                <div className="flex gap-4 mt-6">
-                                    <button onClick={() => setDeletingRecord(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] py-4 border-2 border-slate-100 rounded-2xl">Vazgeç</button>
-                                    <button onClick={deleteAnyRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl">Evet, Sil</button>
+                                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6"><Icons.Trash2 size={32}/></div>
+                                <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter text-slate-900">Emin misiniz?</h3>
+                                <p className="text-slate-500 font-bold text-[11px] mb-8 leading-relaxed uppercase tracking-wider">Bu kayıt kalıcı olarak silinecektir.</p>
+                                <div className="flex gap-4">
+                                    <button onClick={() => setDeletingRecord(null)} className="flex-1 font-black text-slate-400 uppercase text-[10px] tracking-widest py-4 border-2 border-slate-100 rounded-2xl">Vazgeç</button>
+                                    <button onClick={deleteAnyRecord} className="flex-[2] bg-rose-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] shadow-xl shadow-rose-200">Evet, Sil</button>
                                 </div>
                             </div>
                         </div>
@@ -652,3 +665,4 @@
     </script>
 </body>
 </html>
+
