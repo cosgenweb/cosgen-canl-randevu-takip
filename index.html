@@ -182,7 +182,7 @@
             "Ordu": ["Altınordu", "Ünye", "Fatsa", "Gölköy", "Korgan", "Kumru", "Perşembe", "Akkuş", "Aybastı", "İkizce", "Gürgentepe", "Mesudiye", "Çatalpınar", "Çaybaşı", "Kabadüz", "Kabataş", "Ulubey", "Gülyalı", "Çamaş"],
             "Rize": ["Merkez", "Ardeşen", "Çayeli", "Pazar", "Fındıklı", "Güneysu", "Kalkandere", "İyidere", "Derepazarı", "Çamlıhemşin", "İkizdere", "Hemşin"],
             "Sakarya": ["Adapazarı", "Serdivan", "Erenler", "Hendek", "Akyazı", "Karasu", "Geyve", "Arifiye", "Sapanca", "Pamukova", "Ferizli", "Kocaali", "Söğütlü", "Karapürçek", "Taraklı"],
-            "Samsun": ["Atakum", "İlkadım", "Canik", "Bafra", "Çarşamba", "Vezirköprü", "Terme", "Havza", "Alaçam", "19 Mayıs", "Ayvacık", "Kavak", "Salıpazarı", "Asarcık", "Ladik", "Yakakent"],
+            "Samsun": ["Atakum", "İlkadım", "Canik", "Bafra", "Çarşamba", "Vezirköprü", "Terme", "Havza", "Alaçam", "19 Mayıs"],
             "Siirt": ["Merkez", "Kurtalan", "Baykan", "Eruh", "Şirvan", "Pervari", "Tillo"],
             "Sinop": ["Merkez", "Boyabat", "Gerze", "Ayancık", "Durağan", "Türkeli", "Erfelek", "Saraydüzü", "Dikmen"],
             "Sivas": ["Merkez", "Şarkışla", "Yıldızeli", "Suşehri", "Gemerek", "Zara", "Kangal", "Gürün", "Divriği", "Koyulhisar", "Altınyayla", "Haif", "Ulaş", "İmranlı", "Akıncılar", "Gölova", "Doğanşar"],
@@ -213,7 +213,7 @@
 
         const App = () => {
             const ADMIN_PASSWORD = "cosgen45"; 
-            const salesReps = ['Işıl Engin', 'Hasret Gökot', 'Handan Sevgi', 'Ömür Kaplan', 'Gamze Kaç'];
+            const salesReps = ['Temsilci', 'Işıl Engin', 'Hasret Gökot', 'Handan Sevgi', 'Ömür Kaplan', 'Gamze Kaç'];
 
             const sortedProvNames = useMemo(() => Object.keys(CITY_DISTRICTS).sort((a,b) => a.localeCompare(b,'tr')), []);
 
@@ -233,7 +233,7 @@
             const [notification, setNotification] = useState(null);
             const [deletingRecord, setDeletingRecord] = useState(null);
 
-            // Şehre göre dinamik ilçe takibi için state (Başlangıçta listenin ilk şehri olan Adana atanır)
+            // Dinamik ilçe takibi için state
             const [selectedSahaCity, setSelectedSahaCity] = useState(sortedProvNames[0]);
 
             useEffect(() => {
